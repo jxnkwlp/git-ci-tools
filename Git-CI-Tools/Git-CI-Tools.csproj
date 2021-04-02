@@ -7,7 +7,12 @@
 		<Authors>Passingwind</Authors>
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>gitci</ToolCommandName>
-		<PackageOutputPath>./gitci</PackageOutputPath>
+		<PackageId>Passingwind.Git-CI-Tools</PackageId>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/jxnkwlp/git-ci-tools</RepositoryUrl>
+		<RepositoryType>github</RepositoryType>
+		<PackageProjectUrl>https://github.com/jxnkwlp/git-ci-tools</PackageProjectUrl>
+		<PackageTags>ci, git</PackageTags>
 	</PropertyGroup>
 
 	<ItemGroup>
