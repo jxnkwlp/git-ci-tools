@@ -1,6 +1,6 @@
 # 
 
-```
+``` shell
 gitci version -h
 
 Usage:
@@ -8,5 +8,15 @@ Usage:
 
 Commands:
   current    Show current version
-  next       Generate next version
+  next       Generate next version  
+```
+
+``` shell
+gitci release -h
+
+Usage:
+  Git-CI-Tools release [command]
+
+Commands:
+  notes    Generate notes from commit logs
 ```
