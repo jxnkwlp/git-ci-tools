@@ -1,0 +1,20 @@
+﻿version-resolver:
+  major:
+    commit:
+       - 'Major'
+       - '[break changes]'
+    labels:
+      - 'Versioning - major'
+  minor:
+    commit:
+       - '[feat]'
+    labels:
+      - 'Versioning - Minor'
+  patch:
+    commit:
+       - '[fix]'
+       - '[fix bugs]'
+    labels:
+      - 'Versioning - Patch'
+
+  default: patch
