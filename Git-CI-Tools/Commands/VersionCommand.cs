@@ -2,7 +2,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
 using Semver;
 
@@ -31,14 +30,14 @@ namespace Git_CI_Tools.Commands
 
 			command.Handler = CommandHandler.Create<VersionCurrentOptions>((options) =>
 			{
-				var git = InitProject(options.Project);
+				var git = GitContextHelper.InitProject(options.Project);
 
-				var tag = FindLatestTag(git, options.IncludePrerelease);
+				var tag = GitContextHelper.FindLatestTag(git, options.IncludePrerelease);
 
 				if (tag == null)
 					return;
 
-				if (!TryParseTagAsVersion(tag.Name, out var version))
+				if (!GitContextHelper.TryParseTagAsVersion(tag.Name, out var version))
 				{
 					return;
 				}
@@ -91,15 +90,15 @@ namespace Git_CI_Tools.Commands
 				if (string.IsNullOrWhiteSpace(options.Default))
 					options.Default = "1.0.0";
 
-				var git = InitProject(options.Project);
+				var git = GitContextHelper.InitProject(options.Project);
 
-				var tag = FindLatestTag(git, options.IncludePrerelease);
+				var tag = GitContextHelper.FindLatestTag(git, options.IncludePrerelease);
 
 				SemVersion version = VersionGenerater.Parse(options.Default);
 
 				if (tag != null)
 				{
-					if (!TryParseTagAsVersion(tag.Name, out version))
+					if (!GitContextHelper.TryParseTagAsVersion(tag.Name, out version))
 					{
 						version = VersionGenerater.Parse(options.Default);
 					}
@@ -115,9 +114,10 @@ namespace Git_CI_Tools.Commands
 				//	currentVersion = VersionGenerater.New();
 
 				// var nextVersion = VersionGenerater.Next(currentVersion);
-				var nextVersion = ResolverVersionFromCommit(git, currentVersion, tag.Sha, options.Major, options.Minor, options.Patch, options.Prerelease, options.Build);
+				var branch = git.GetCurrentBranch();
+				var nextVersion = GitContextHelper.ResolverVersionFromCommit(git, currentVersion, branch.Name, tag?.Sha, options.Major, options.Minor, options.Patch, options.Prerelease, options.Build);
 
-				if (nextVersion.ToString() == currentVersion.ToString())
+				if (nextVersion.ToString() == currentVersion.ToString() && options.Focus)
 					nextVersion = VersionGenerater.Next(currentVersion, patch: true);
 
 				Console.Out.WriteLine("Next version: " + nextVersion);
@@ -142,118 +142,7 @@ namespace Git_CI_Tools.Commands
 			return command;
 		}
 
-		private GitContext InitProject(string project)
-		{
-			var git = new GitContext(project ?? Directory.GetCurrentDirectory());
-			if (!git.IsValid())
-			{
-				Console.Error.WriteLine("No git repo found at or above: \"{0}\"", project);
-				return null;
-			}
 
-			return git;
-		}
-
-		private GitTags FindLatestTag(GitContext git, bool prerelease = false)
-		{
-			var tags = git.GetTags().ToList();
-
-			if (tags.Count == 0)
-			{
-				Console.Error.WriteLine("No tags found.");
-				return null;
-			}
-			else
-			{
-				Console.Out.WriteLine($"Find {tags.Count} tags.");
-				Console.Out.WriteLine($"The latest 5 tags ... ");
-				foreach (var item in tags.Take(5))
-				{
-					Console.Out.WriteLine(item.Name);
-				}
-				Console.Out.WriteLine(Environment.NewLine);
-			}
-
-			var tag = tags.First();
-
-			if (!prerelease)
-				//foreach (var item in tags)
-				//{
-				//	if (TryParseTagAsVersion(item.Name, out var v))
-				//	{
-				//		if (!string.IsNullOrEmpty(v.Prerelease))
-				//			continue;
-				//		else
-				//		{
-				//			tag = item;
-				//			break;
-				//		}
-				//	}
-				//	else
-				//	{
-				//		tag = null;
-				//	}
-				//}
-				// tag = tags.Where(x => !x.Name.Contains("pre") && !x.Name.Contains("dev") && !x.Name.Contains("rc")).FirstOrDefault();
-				tag = tags.Where(x => TryParseTagAsVersion(x.Name, out var v) && string.IsNullOrEmpty(v.Prerelease)).FirstOrDefault();
-
-			if (tag == null)
-			{
-				Console.Error.WriteLine("No tags found.");
-				return null;
-			}
-
-			Console.Out.WriteLine($"The Latest tag: {tag.Name}");
-
-			return tag;
-		}
-
-		private bool TryParseTagAsVersion(string tagName, out SemVersion version)
-		{
-			version = null;
-			int index = -1;
-
-			for (int i = 0; i < tagName.Length; i++)
-			{
-				if (char.IsDigit(tagName[i]))
-				{
-					index = i;
-					break;
-				}
-			}
-
-			if (index == -1) return false;
-
-			var v = tagName.Substring(index);
-
-			if (!SemVersion.TryParse(v, out version))
-			{
-				Console.Error.WriteLine($"The tag '{tagName}' can't parse as version.");
-				return false;
-			}
-
-			return true;
-		}
-
-		private SemVersion ResolverVersionFromCommit(GitContext gitContext, SemVersion version, string from = null, bool major = false, bool minor = true, bool patch = false, string prerelease = null, string build = null)
-		{
-			var commits = gitContext.GetCommits(from);
-
-			SemVersion result = version;
-
-			if (major || UserConfig.IsMajor(gitContext.Project, commits))
-				result = VersionGenerater.Next(result, major: true);
-
-			if (!major && (UserConfig.IsMinor(gitContext.Project, commits) || minor))
-				result = VersionGenerater.Next(result, minor: true);
-
-			if (!major && !minor && (UserConfig.IsPatch(gitContext.Project, commits) || patch))
-				result = VersionGenerater.Next(result, patch: true);
-
-			result = VersionGenerater.Next(result, prerelease: prerelease, build: build);
-
-			return result;
-		}
 	}
 
 

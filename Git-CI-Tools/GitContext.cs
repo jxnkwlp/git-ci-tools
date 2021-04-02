@@ -42,8 +42,24 @@ namespace Git_CI_Tools
 			}).ToList();
 		}
 
-		public IReadOnlyList<GitCommit> GetCommits(string fromSha = null)
+		public GitBranch GetCurrentBranch()
 		{
+			var branch = _repository.Head;
+
+			return new GitBranch()
+			{
+				Name = branch.FriendlyName,
+				Sha = branch.Tip.Sha,
+			};
+		}
+
+		public IReadOnlyList<GitCommit> GetCommits(string branch = null, string fromSha = null)
+		{
+			ICommitLog commits = _repository.Commits;
+
+			if (!string.IsNullOrWhiteSpace(branch))
+				commits = _repository.Branches[branch].Commits;
+
 			Commit fromCommit = null;
 			if (fromSha != null)
 			{
@@ -52,24 +68,27 @@ namespace Git_CI_Tools
 
 			var fromDate = fromCommit?.Committer.When;
 
-			var query = _repository.Commits;
+			var query = commits;
+
+			List<Commit> resultCommits = null;
 
 			if (fromDate.HasValue)
-				return query.SkipWhile(x => x.Committer.When <= fromDate.Value).Select(x => new GitCommit()
-				{
-					Date = x.Committer.When,
-					Message = x.Message,
-					MessageShort = x.MessageShort,
-					Sha = x.Sha,
-				}).ToList();
+				resultCommits = query.Where(x => x.Committer.When >= fromDate.Value).ToList();
 			else
-				return query.Select(x => new GitCommit()
+				resultCommits = query.ToList();
+
+			return resultCommits.Select(x => new GitCommit()
+			{
+				Date = x.Committer.When,
+				Message = x.Message,
+				MessageShort = x.MessageShort,
+				Sha = x.Sha,
+				Author = new GitAuthor()
 				{
-					Date = x.Committer.When,
-					Message = x.Message,
-					MessageShort = x.MessageShort,
-					Sha = x.Sha,
-				}).ToList();
+					Email = x.Committer.Email,
+					Name = x.Committer.Name,
+				},
+			}).ToList();
 		}
 	}
 
@@ -87,5 +106,55 @@ namespace Git_CI_Tools
 		public string MessageShort { get; set; }
 		public string Sha { get; set; }
 		public DateTimeOffset Date { get; set; }
+		public GitAuthor Author { get; set; }
+
+		public override string ToString()
+		{
+			return $"{Sha} {MessageShort} {Date} {Author}";
+		}
+	}
+
+	public class GitAuthor : IEquatable<GitAuthor>
+	{
+		public string Name { get; set; }
+		public string Email { get; set; }
+
+		public override bool Equals(object obj)
+		{
+			return Equals(obj as GitAuthor);
+		}
+
+		public bool Equals(GitAuthor other)
+		{
+			return other != null &&
+				   Name == other.Name &&
+				   Email == other.Email;
+		}
+
+		public override int GetHashCode()
+		{
+			return HashCode.Combine(Name, Email);
+		}
+
+		public override string ToString()
+		{
+			return $"{Name}[{Email}]";
+		}
+
+		public static bool operator ==(GitAuthor left, GitAuthor right)
+		{
+			return EqualityComparer<GitAuthor>.Default.Equals(left, right);
+		}
+
+		public static bool operator !=(GitAuthor left, GitAuthor right)
+		{
+			return !(left == right);
+		}
+	}
+
+	public class GitBranch
+	{
+		public string Name { get; set; }
+		public string Sha { get; set; }
 	}
 }

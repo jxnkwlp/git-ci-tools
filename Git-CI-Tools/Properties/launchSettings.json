@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Git-CI-Tools": {
-      "commandName": "Project",
-      "commandLineArgs": "version next "
+      "commandName": "Project"
     }
   }
 }
