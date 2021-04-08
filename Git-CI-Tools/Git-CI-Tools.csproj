@@ -13,7 +13,7 @@
 		<RepositoryType>github</RepositoryType>
 		<PackageProjectUrl>https://github.com/jxnkwlp/git-ci-tools</PackageProjectUrl>
 		<PackageTags>ci, git</PackageTags>
-		<Version>0.1.1-pre</Version>
+		<Version>0.1.0-pre.2</Version>
 	</PropertyGroup>
 
 	<ItemGroup>

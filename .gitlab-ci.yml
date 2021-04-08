@@ -13,7 +13,7 @@ get-version:
     - echo 'running generate version'
     - export PATH="$PATH:/root/.dotnet/tools"
   script:
-    - dotnet tool install -g Passingwind.Git-CI-Tools --version 0.1.1-pre
+    - dotnet tool install -g Passingwind.Git-CI-Tools --version 0.1.0-pre.2
     - gitci version current -o $CI_PROJECT_DIR/variables.env --format dotenv
     - gitci version next --branch 'origin/$CI_COMMIT_BRANCH' -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease  --prerelease="dev" --build=$CI_COMMIT_SHORT_SHA  --debug-mode
     - gitci release notes --branch 'origin/$CI_COMMIT_BRANCH' -o $CI_PROJECT_DIR/CHANGELOG.md  --include-prerelease=false
