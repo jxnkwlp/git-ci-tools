@@ -13,14 +13,15 @@ get-version:
     - echo 'running generate version'
     - export PATH="$PATH:/root/.dotnet/tools"
   script:
-    # - dotnet tool install -g Passingwind.Git-CI-Tools --version 0.1.0-pre1
-    # - gitci version current
-    # - gitci version next -o variables.env --format dotenv  --include-prerelease --prerelease="dev" --build=$CI_COMMIT_SHA
-    - cd Git-CI-Tools
-    - dotnet restore
-    - dotnet run -- version current -o $CI_PROJECT_DIR/variables.env --format dotenv
-    - dotnet run -- version next --branch 'origin/feature/gitlab' -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease  --prerelease="dev" --build=$CI_COMMIT_SHORT_SHA  --debug-mode
-    - dotnet run -- release notes --branch 'origin/feature/gitlab' -o $CI_PROJECT_DIR/CHANGELOG.md  --include-prerelease=false
+    - dotnet tool install -g Passingwind.Git-CI-Tools --version 0.1.1-pre
+    - gitci version current -o $CI_PROJECT_DIR/variables.env --format dotenv
+    - gitci version next --branch 'origin/$CI_COMMIT_BRANCH' -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease  --prerelease="dev" --build=$CI_COMMIT_SHORT_SHA  --debug-mode
+    - gitci release notes --branch 'origin/$CI_COMMIT_BRANCH' -o $CI_PROJECT_DIR/CHANGELOG.md  --include-prerelease=false
+    # - cd Git-CI-Tools
+    # - dotnet restore
+    # - dotnet run -- version current -o $CI_PROJECT_DIR/variables.env --format dotenv
+    # - dotnet run -- version next --branch 'origin/feature/gitlab' -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease  --prerelease="dev" --build=$CI_COMMIT_SHORT_SHA  --debug-mode
+    # - dotnet run -- release notes --branch 'origin/feature/gitlab' -o $CI_PROJECT_DIR/CHANGELOG.md  --include-prerelease=false
     - ls $CI_PROJECT_DIR
   artifacts:
     paths:
