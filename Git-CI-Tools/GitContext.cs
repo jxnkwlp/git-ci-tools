@@ -15,19 +15,28 @@ namespace Git_CI_Tools
 
 		public GitContext(string path)
 		{
-			_path = path;
+			if (string.IsNullOrWhiteSpace(path))
+			{
+				throw new ArgumentException($"'{nameof(path)}' cannot be null", nameof(path));
+			}
 
-			string dir = Repository.Discover(path);
+			if (Repository.IsValid(path))
+				_path = path;
+			else
+			{
+				string dir = Repository.Discover(path);
 
-			if (!string.IsNullOrEmpty(dir))
-				_path = dir;
+				if (!string.IsNullOrEmpty(dir))
+					_path = dir;
+			}
 
-			_repository = new Repository(_path);
+			if (!string.IsNullOrEmpty(_path))
+				_repository = new Repository(_path);
 		}
 
 		public bool IsValid()
 		{
-			return Repository.IsValid(_path);
+			return _repository != null;
 		}
 
 		// public string HeadSha => _repository.Commits.First().Sha;

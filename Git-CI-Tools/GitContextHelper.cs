@@ -9,7 +9,12 @@ namespace Git_CI_Tools
 	{
 		public static GitContext InitProject(string project)
 		{
-			var git = new GitContext(project ?? Directory.GetCurrentDirectory());
+			var path = project;
+			if (string.IsNullOrEmpty(project))
+				path = Directory.GetCurrentDirectory();
+
+			var git = new GitContext(path);
+
 			if (!git.IsValid())
 			{
 				Console.Error.WriteLine("No git repo found at or above: \"{0}\"", project);
@@ -110,10 +115,10 @@ namespace Git_CI_Tools
 			if (major || ReleaseHelper.IsMajor(gitContext.Project, commits))
 				result = VersionGenerater.Next(result, major: true);
 
-			if (!major && (ReleaseHelper.IsMinor(gitContext.Project, commits) || minor))
+			else if (!major && (ReleaseHelper.IsMinor(gitContext.Project, commits) || minor))
 				result = VersionGenerater.Next(result, minor: true);
 
-			if (!major && !minor && (ReleaseHelper.IsPatch(gitContext.Project, commits) || patch))
+			else if (!major && !minor && (ReleaseHelper.IsPatch(gitContext.Project, commits) || patch))
 				result = VersionGenerater.Next(result, patch: true);
 
 			result = VersionGenerater.Next(result, prerelease: prerelease, build: build);
