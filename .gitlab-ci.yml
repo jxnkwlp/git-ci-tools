@@ -1,0 +1,37 @@
+stages:
+  - version
+  - release
+
+get-version:
+  stage: version
+  image: mcr.microsoft.com/dotnet/sdk:5.0-focal
+  before_script:
+    - export PATH="$PATH:/root/.dotnet/tools"
+  script:
+    # - dotnet tool install -g Passingwind.Git-CI-Tools --version 0.1.0-pre1
+    # - gitci version current
+    # - gitci version next -o variables.env --format dotenv  --include-prerelease --prerelease="dev" --build=$CI_COMMIT_SHA
+    - cd Git-CI-Tools
+    - dotnet run -- version current
+    - dotnet run -- version next -o variables.env --format dotenv  --include-prerelease --prerelease="dev" --build=$CI_COMMIT_SHA
+  artifacts:
+    reports:
+      dotenv: variables.env
+
+release_job:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs:
+    - job: get-version
+      artifacts: true
+  #   rules:
+  #     - if: $CI_COMMIT_TAG
+  #       when: never                                  # Do not run this job when a tag is created manually
+  #     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # Run this job when commits are pushed or merged to the default branch
+  script:
+    - echo 'running release_job for $TAG'
+  release:
+    name: "Release $nextVersion"
+    description: "Created using the release-cli $nextVersion" # $EXTRA_DESCRIPTION and the $TAG
+    tag_name: "$nextVersion" # variables must be defined elsewhere
+    ref: "$CI_COMMIT_SHA" # in the pipelin
