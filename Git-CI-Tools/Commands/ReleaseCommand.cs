@@ -24,10 +24,12 @@ namespace Git_CI_Tools.Commands
 			command.AddOption(new Option<string>("--project", "", "The project root path.") { Required = false });
 			command.AddOption(new Option<bool>("--include-prerelease", false));
 
+			command.AddOption(new Option<string>("--branch"));
+
 			command.AddOption(new Option<string>("--provider"));
 			command.AddOption(new Option<string>("--server-url"));
 
-			command.AddOption(new Option<string>("--output"));
+			command.AddOption(new Option<string>(new[] { "--output", "-o" }));
 
 			command.Handler = CommandHandler.Create<ReleaseNoteCommandOption>(options =>
 			{
@@ -39,13 +41,17 @@ namespace Git_CI_Tools.Commands
 
 				var git = GitContextHelper.InitProject(options.Project);
 
-				var tag = GitContextHelper.FindLatestTag(git, options.IncludePrerelease);
+				if (git == null)
+					return;
 
-				var branch = git.GetCurrentBranch();
+				var tag = GitContextHelper.FindLatestTag(git, !options.IncludePrerelease);
 
-				Console.Out.WriteLine($"Current branch: {branch.Name}");
+				if (string.IsNullOrEmpty(options.Branch))
+					options.Branch = git.GetCurrentBranch()?.Name;
 
-				var commits = git.GetCommits(branch.Name, fromSha: tag.Sha).ToList();
+				Console.Out.WriteLine($"Current branch: {options.Branch}");
+
+				var commits = git.GetCommits(options.Branch, fromSha: tag?.Sha).ToList();
 
 				Console.Out.WriteLine($"Find {commits.Count()} commits.");
 
@@ -53,7 +59,7 @@ namespace Git_CI_Tools.Commands
 
 				string notes = ReleaseHelper.GenerateNotes(git.Project, commits, gitProvider);
 
-				Console.Out.WriteLine($"Release notes generated.");
+				Console.Out.WriteLine($"Release notes generated. {Environment.NewLine}");
 
 				if (!string.IsNullOrEmpty(options.Output))
 				{
@@ -71,9 +77,12 @@ namespace Git_CI_Tools.Commands
 
 	public class ReleaseNoteCommandOption
 	{
+
 		public string Provider { get; set; }
 		public string ServerUrl { get; set; }
+
 		public string Project { get; set; }
+		public string Branch { get; set; }
 		public bool IncludePrerelease { get; set; }
 
 		public string Output { get; set; }

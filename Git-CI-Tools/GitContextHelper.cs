@@ -24,7 +24,7 @@ namespace Git_CI_Tools
 			return git;
 		}
 
-		public static GitTags FindLatestTag(GitContext git, bool prerelease = false)
+		public static GitTags FindLatestTag(GitContext git, bool includePrerelease = false)
 		{
 			var tags = git.GetTags().ToList();
 
@@ -35,7 +35,7 @@ namespace Git_CI_Tools
 			}
 			else
 			{
-				Console.Out.WriteLine($"Find {tags.Count} tags.");
+				Console.Out.WriteLine($"Find {tags.Count} tags:");
 				foreach (var item in tags.Take(5))
 				{
 					Console.Out.WriteLine($" - {item.Name}");
@@ -47,31 +47,37 @@ namespace Git_CI_Tools
 
 			var tag = tags.First();
 
-			if (!prerelease)
-				//foreach (var item in tags)
-				//{
-				//	if (TryParseTagAsVersion(item.Name, out var v))
-				//	{
-				//		if (!string.IsNullOrEmpty(v.Prerelease))
-				//			continue;
-				//		else
-				//		{
-				//			tag = item;
-				//			break;
-				//		}
-				//	}
-				//	else
-				//	{
-				//		tag = null;
-				//	}
-				//}
-				// tag = tags.Where(x => !x.Name.Contains("pre") && !x.Name.Contains("dev") && !x.Name.Contains("rc")).FirstOrDefault();
-				tag = tags.Where(x => TryParseTagAsVersion(x.Name, out var v) && string.IsNullOrEmpty(v.Prerelease)).FirstOrDefault();
+			//if (!prerelease)
+			//foreach (var item in tags)
+			//{
+			//	if (TryParseTagAsVersion(item.Name, out var v))
+			//	{
+			//		if (!string.IsNullOrEmpty(v.Prerelease))
+			//			continue;
+			//		else
+			//		{
+			//			tag = item;
+			//			break;
+			//		}
+			//	}
+			//	else
+			//	{
+			//		tag = null;
+			//	}
+			//}
+			// tag = tags.Where(x => !x.Name.Contains("pre") && !x.Name.Contains("dev") && !x.Name.Contains("rc")).FirstOrDefault();
 
-			if (tag == null)
+			if (!includePrerelease)
 			{
-				Console.Error.WriteLine("No tags found.");
-				return null;
+				tag = tags
+					.Where(x => TryParseTagAsVersion(x.Name, out var v) && string.IsNullOrEmpty(v.Prerelease))
+					.FirstOrDefault();
+
+				if (tag == null)
+				{
+					Console.Error.WriteLine($"No tag found when uninclude pre-release version.");
+					return null;
+				}
 			}
 
 			Console.Out.WriteLine($"The Latest tag: {tag.Name}");

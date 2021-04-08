@@ -121,6 +121,11 @@ namespace Git_CI_Tools
 		public string Message { get; set; }
 		public string Sha { get; set; }
 		public string Time { get; set; }
+
+		public override string ToString()
+		{
+			return $"{Name} => {Sha}";
+		}
 	}
 
 	public class GitCommit

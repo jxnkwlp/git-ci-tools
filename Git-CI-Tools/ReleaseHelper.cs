@@ -105,7 +105,7 @@ $CHANGES" : options.Template;
 				{
 					if (cate.Commits?.Any() == true)
 					{
-						var list = commits.Where(x => cate.Commits.All(s => x.Message.Contains(s))).ToList();
+						var list = commits.Where(x => cate.Commits.Any(s => x.Message.Contains(s))).ToList();
 
 						cateCommits[cate.Title] = list;
 					}

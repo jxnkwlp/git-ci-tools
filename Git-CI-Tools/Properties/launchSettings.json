@@ -2,7 +2,7 @@
   "profiles": {
     "Git-CI-Tools": {
       "commandName": "Project",
-      "commandLineArgs": "version next"
+      "commandLineArgs": "version current --include-prerelease=false"
     }
   }
 }
