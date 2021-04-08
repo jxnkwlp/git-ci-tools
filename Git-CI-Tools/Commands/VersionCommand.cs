@@ -80,7 +80,7 @@ namespace Git_CI_Tools.Commands
 			command.AddOption(new Option<string>("--prerelease"));
 			command.AddOption(new Option<string>("--build"));
 
-			command.AddOption(new Option<bool>(new string[] { "--focus", "-f" }, false, "Focus generate next version."));
+			command.AddOption(new Option<bool>(new string[] { "--force", "-f" }, false, "Force generate next version."));
 
 			command.AddOption(new Option<string>(new string[] { "--format" }, "text", "output formats: json/dotenv/text(default)"));
 			command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "", "Output result to file."));
@@ -117,7 +117,7 @@ namespace Git_CI_Tools.Commands
 				var branch = git.GetCurrentBranch();
 				var nextVersion = GitContextHelper.ResolverVersionFromCommit(git, currentVersion, branch.Name, tag?.Sha, options.Major, options.Minor, options.Patch, options.Prerelease, options.Build);
 
-				if (nextVersion.ToString() == currentVersion.ToString() && options.Focus)
+				if (nextVersion.ToString() == currentVersion.ToString() && options.Force)
 					nextVersion = VersionGenerater.Next(currentVersion, patch: true);
 
 				Console.Out.WriteLine("Next version: " + nextVersion);
@@ -171,7 +171,7 @@ namespace Git_CI_Tools.Commands
 		public string Prerelease { get; set; }
 		public string Build { get; set; }
 
-		public bool Focus { get; set; }
+		public bool Force { get; set; }
 
 		public string Format { get; set; }
 		public string Output { get; set; }

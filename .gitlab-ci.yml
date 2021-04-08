@@ -4,7 +4,7 @@ stages:
 
 get-version:
   stage: version
-  image: mcr.microsoft.com/dotnet/sdk:5.0-focal
+  image: mcr.microsoft.com/dotnet/sdk:5.0-alpine3.12
   before_script:
     - export PATH="$PATH:/root/.dotnet/tools"
   script:
@@ -12,6 +12,7 @@ get-version:
     # - gitci version current
     # - gitci version next -o variables.env --format dotenv  --include-prerelease --prerelease="dev" --build=$CI_COMMIT_SHA
     - cd Git-CI-Tools
+    - dotnet restore
     - dotnet run -- version current
     - dotnet run -- version next -o variables.env --format dotenv  --include-prerelease --prerelease="dev" --build=$CI_COMMIT_SHA
   artifacts:
