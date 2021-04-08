@@ -62,6 +62,20 @@ namespace Git_CI_Tools
 			};
 		}
 
+		public IReadOnlyList<GitBranch> GetBranchs()
+		{
+			return _repository.Branches.Select(x => new GitBranch()
+			{
+				Name = x.FriendlyName,
+				Sha = x.Tip.Sha,
+			}).ToList();
+		}
+
+		public bool BranchExisting(string name)
+		{
+			return _repository.Branches.Any(x => x.FriendlyName == name);
+		}
+
 		public IReadOnlyList<GitCommit> GetCommits(string branch = null, string fromSha = null)
 		{
 			ICommitLog commits = _repository.Commits;
@@ -165,5 +179,10 @@ namespace Git_CI_Tools
 	{
 		public string Name { get; set; }
 		public string Sha { get; set; }
+
+		public override string ToString()
+		{
+			return $"{Name} => {Sha}";
+		}
 	}
 }

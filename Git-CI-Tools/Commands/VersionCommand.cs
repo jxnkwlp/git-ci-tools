@@ -2,6 +2,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using Semver;
 
@@ -31,6 +32,9 @@ namespace Git_CI_Tools.Commands
 			command.Handler = CommandHandler.Create<VersionCurrentOptions>((options) =>
 			{
 				var git = GitContextHelper.InitProject(options.Project);
+
+				if (git == null)
+					return;
 
 				var tag = GitContextHelper.FindLatestTag(git, options.IncludePrerelease);
 
@@ -71,8 +75,12 @@ namespace Git_CI_Tools.Commands
 
 			command.AddOption(new Option<string>("--project", "", "The project root path.") { Required = false });
 			command.AddOption(new Option<string>("--default", "1.0.0", "Default version.") { Required = false });
+			command.AddOption(new Option<string>("--branch", () => ""));
 
 			command.AddOption(new Option<bool>("--include-prerelease", false));
+
+			command.AddOption(new Option<bool>("--debug-mode", () => false));
+
 
 			command.AddOption(new Option<bool>("--major"));
 			command.AddOption(new Option<bool>("--minor"));
@@ -90,7 +98,14 @@ namespace Git_CI_Tools.Commands
 				if (string.IsNullOrWhiteSpace(options.Default))
 					options.Default = "1.0.0";
 
+				DebugWrite(options.DebugMode, $"Default version: {options.Default}");
+
 				var git = GitContextHelper.InitProject(options.Project);
+
+				if (git == null)
+					return;
+
+				DebugWrite(options.DebugMode, $"Project: {git.Project}");
 
 				var tag = GitContextHelper.FindLatestTag(git, options.IncludePrerelease);
 
@@ -110,12 +125,27 @@ namespace Git_CI_Tools.Commands
 
 				var currentVersion = version;
 
-				//if (currentVersion == null)
-				//	currentVersion = VersionGenerater.New();
+				DebugWrite(options.DebugMode, "Branchs: " + Environment.NewLine + string.Join(Environment.NewLine, git.GetBranchs().Select(x => x.ToString())));
 
-				// var nextVersion = VersionGenerater.Next(currentVersion);
-				var branch = git.GetCurrentBranch();
-				var nextVersion = GitContextHelper.ResolverVersionFromCommit(git, currentVersion, branch.Name, tag?.Sha, options.Major, options.Minor, options.Patch, options.Prerelease, options.Build);
+				if (string.IsNullOrEmpty(options.Branch))
+					options.Branch = git.GetCurrentBranch()?.Name;
+
+				if (!git.BranchExisting(options.Branch))
+				{
+					DebugWrite(options.DebugMode, $"The branch '{options.Branch}' not found. ");
+					return;
+				}
+
+				var nextVersion = GitContextHelper.ResolverVersionFromCommit(
+					git,
+					currentVersion,
+					options.Branch,
+					tag?.Sha,
+					options.Major,
+					options.Minor,
+					options.Patch,
+					options.Prerelease,
+					options.Build);
 
 				if (nextVersion.ToString() == currentVersion.ToString() && options.Force)
 					nextVersion = VersionGenerater.Next(currentVersion, patch: true);
@@ -142,7 +172,10 @@ namespace Git_CI_Tools.Commands
 			return command;
 		}
 
-
+		private static void DebugWrite(bool isDebug, string text)
+		{
+			Console.WriteLine(text);
+		}
 	}
 
 
@@ -158,6 +191,8 @@ namespace Git_CI_Tools.Commands
 	public class VersionNextOptions
 	{
 		public string Project { get; set; }
+		public string Branch { get; set; }
+
 		//public string Provider { get; set; }
 		//public Uri Url { get; set; }
 		//public string Token { get; set; }
@@ -175,5 +210,7 @@ namespace Git_CI_Tools.Commands
 
 		public string Format { get; set; }
 		public string Output { get; set; }
+
+		public bool DebugMode { get; set; }
 	}
 }
