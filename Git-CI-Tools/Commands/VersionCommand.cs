@@ -132,7 +132,7 @@ namespace Git_CI_Tools.Commands
 
 				if (!git.BranchExisting(options.Branch))
 				{
-					DebugWrite(options.DebugMode, $"The branch '{options.Branch}' not found. ");
+					Console.Error.WriteLine($"The branch '{options.Branch}' not found. ");
 					return;
 				}
 

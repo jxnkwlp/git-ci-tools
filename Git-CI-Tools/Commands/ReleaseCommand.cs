@@ -49,6 +49,12 @@ namespace Git_CI_Tools.Commands
 				if (string.IsNullOrEmpty(options.Branch))
 					options.Branch = git.GetCurrentBranch()?.Name;
 
+				if (!git.BranchExisting(options.Branch))
+				{
+					Console.Error.WriteLine($"The branch '{options.Branch}' not found. ");
+					return;
+				}
+
 				Console.Out.WriteLine($"Current branch: {options.Branch}");
 
 				var commits = git.GetCommits(options.Branch, fromSha: tag?.Sha).ToList();
