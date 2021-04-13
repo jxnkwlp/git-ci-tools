@@ -22,12 +22,13 @@ namespace Git_CI_Tools.Commands
 
 		private Command VersionCurrentCommand()
 		{
-			var command = new Command("current", "Show current version.");
+			var command = new Command("current", "Show current version");
 
-			command.AddOption(new Option<string>("--project") { Required = false });
-			command.AddOption(new Option<bool>("--include-prerelease", false));
-			command.AddOption(new Option<string>(new string[] { "--format" }, "text", "output formats: json/dotenv/text(default)"));
-			command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "", "Output result to file."));
+			command.AddOption(new Option<string>("--project", "The project root path"));
+			command.AddOption(new Option<bool>("--include-prerelease", () => false));
+
+			command.AddOption(new Option<string>(new string[] { "--format" }, () => "text", "Output format: json/dotenv/text"));
+			command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "Output results to the specified file"));
 
 			command.Handler = CommandHandler.Create<VersionCurrentOptions>((options) =>
 			{
@@ -48,22 +49,26 @@ namespace Git_CI_Tools.Commands
 
 				var currentVersion = version;
 
-				Console.Out.WriteLine("Current version: " + currentVersion);
+				Console.Out.WriteLine($"Current version: {currentVersion}. ");
 
 				string outputText = currentVersion.ToString();
+
 				if (options.Format == "json")
 				{
-					outputText = JsonSerializer.Serialize(new { versionText = currentVersion.ToString(), version = currentVersion });
+					outputText = JsonSerializer.Serialize(new { CurrentVersionText = currentVersion.ToString(), CurrentVersion = currentVersion }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 				}
 				else if (options.Format == "dotenv")
 				{
-					outputText = $"version={currentVersion}";
+					outputText = $"CURRENT_VERSION={currentVersion}";
 				}
 
 				if (!string.IsNullOrEmpty(options.Output))
 				{
-					File.WriteAllText(options.Output, outputText);
+					File.AppendAllLines(options.Output, new string[] { outputText });
+
+					Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ");
 				}
+
 			});
 
 			return command;
@@ -71,61 +76,54 @@ namespace Git_CI_Tools.Commands
 
 		private Command VersionNextCommand()
 		{
-			var command = new Command("next", "Generate next version.");
+			var command = new Command("next", "Generate next version");
 
-			command.AddOption(new Option<string>("--project", "", "The project root path.") { Required = false });
-			command.AddOption(new Option<string>("--default", "1.0.0", "Default version.") { Required = false });
-			command.AddOption(new Option<string>("--branch", () => ""));
+			command.AddOption(new Option<bool>("--debug-mode", () => false) { IsHidden = true });
 
-			command.AddOption(new Option<bool>("--include-prerelease", false));
+			command.AddOption(new Option<string>("--project", "The project root path"));
+			command.AddOption(new Option<string>("--default-version", () => "1.0.0", "Default version"));
+			command.AddOption(new Option<string>("--branch"));
 
-			command.AddOption(new Option<bool>("--debug-mode", () => false));
+			command.AddOption(new Option<bool>("--include-prerelease", () => false));
 
+			command.AddOption(new Option<bool>("--major-ver", "Set the major version number"));
+			command.AddOption(new Option<bool>("--minor-ver", "Set the minor version number"));
+			command.AddOption(new Option<bool>("--patch-ver", "Set the patch version number"));
+			command.AddOption(new Option<string>("--prerelease-ver", "Set the prerelease version number"));
+			command.AddOption(new Option<string>("--build-ver", "Set the build version number"));
 
-			command.AddOption(new Option<bool>("--major"));
-			command.AddOption(new Option<bool>("--minor"));
-			command.AddOption(new Option<bool>("--patch"));
-			command.AddOption(new Option<string>("--prerelease"));
-			command.AddOption(new Option<string>("--build"));
+			command.AddOption(new Option<bool>("--force", "Force generation of the next version number"));
 
-			command.AddOption(new Option<bool>(new string[] { "--force", "-f" }, false, "Force generate next version."));
-
-			command.AddOption(new Option<string>(new string[] { "--format" }, "text", "output formats: json/dotenv/text(default)"));
-			command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "", "Output result to file."));
+			command.AddOption(new Option<string>(new string[] { "--format" }, () => "text", "Output format: json/dotenv/text"));
+			command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "Output results to the specified file"));
 
 			command.Handler = CommandHandler.Create<VersionNextOptions>(options =>
 			{
-				if (string.IsNullOrWhiteSpace(options.Default))
-					options.Default = "1.0.0";
-
-				DebugWrite(options.DebugMode, $"Default version: {options.Default}");
-
 				var git = GitContextHelper.InitProject(options.Project);
 
 				if (git == null)
 					return;
 
-				DebugWrite(options.DebugMode, $"Project: {git.Project}");
-
 				var tag = GitContextHelper.FindLatestTag(git, options.IncludePrerelease);
 
-				SemVersion version = VersionGenerater.Parse(options.Default);
+				SemVersion currentVersion = VersionGenerater.New();
 
-				if (tag != null)
+				if (tag != null && GitContextHelper.TryParseTagAsVersion(tag.Name, out currentVersion))
 				{
-					if (!GitContextHelper.TryParseTagAsVersion(tag.Name, out version))
-					{
-						version = VersionGenerater.Parse(options.Default);
-					}
+					// 
+					// Console.Out.WriteLine("Current version: " + currentVersion);
 				}
 				else
 				{
-					version = VersionGenerater.Parse(options.Default);
+					if (string.IsNullOrEmpty(options.DefaultVersion))
+						options.DefaultVersion = "1.0.0";
+
+					currentVersion = VersionGenerater.Parse(options.DefaultVersion);
 				}
 
-				var currentVersion = version;
+				Console.Out.WriteLine($"Current version: {currentVersion}. ");
 
-				DebugWrite(options.DebugMode, "Branchs: " + Environment.NewLine + string.Join(Environment.NewLine, git.GetBranchs().Select(x => x.ToString())));
+				DebugWrite(options.DebugMode, () => "Project branchs: " + Environment.NewLine + string.Join(Environment.NewLine, git.GetBranchs().Select(x => x.ToString())));
 
 				if (string.IsNullOrEmpty(options.Branch))
 					options.Branch = git.GetCurrentBranch()?.Name;
@@ -136,35 +134,47 @@ namespace Git_CI_Tools.Commands
 					return;
 				}
 
+				if (tag != null)
+					Console.Out.WriteLine($"Reverse version from tag {tag} of branch  '{options.Branch}' ... ");
+				else
+					Console.Out.WriteLine($"Reverse version from branch ... ");
+
 				var nextVersion = GitContextHelper.ResolverVersionFromCommit(
 					git,
 					currentVersion,
 					options.Branch,
 					tag?.Sha,
-					options.Major,
-					options.Minor,
-					options.Patch,
-					options.Prerelease,
-					options.Build);
+					options.MajorVer,
+					options.MinorVer,
+					options.PatchVer,
+					options.PrereleaseVer,
+					options.BuildVer);
 
 				if (nextVersion.ToString() == currentVersion.ToString() && options.Force)
 					nextVersion = VersionGenerater.Next(currentVersion, patch: true);
 
-				Console.Out.WriteLine("Next version: " + nextVersion);
-
 				string outputText = nextVersion.ToString();
+
+				Console.Out.WriteLine($"The next version: {outputText}. ");
+
 				if (options.Format == "json")
 				{
-					outputText = JsonSerializer.Serialize(new { nextVersionText = nextVersion.ToString(), nextVersion = nextVersion });
+					outputText = JsonSerializer.Serialize(new { NextVersionText = nextVersion.ToString(), NextVersion = nextVersion }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 				}
 				else if (options.Format == "dotenv")
 				{
-					outputText = $"nextVersion={nextVersion}";
+					outputText = $"NEXT_VERSION={nextVersion}";
+				}
+				else
+				{
+					//Console.Out.WriteLine($"The next version result: {Environment.NewLine}{outputText}. ");
 				}
 
 				if (!string.IsNullOrEmpty(options.Output))
 				{
-					File.WriteAllText(options.Output, outputText);
+					File.AppendAllLines(options.Output, new string[] { outputText });
+
+					Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ");
 				}
 
 			});
@@ -172,9 +182,10 @@ namespace Git_CI_Tools.Commands
 			return command;
 		}
 
-		private static void DebugWrite(bool isDebug, string text)
+		private static void DebugWrite(bool isDebug, Func<string> outputFunc)
 		{
-			Console.WriteLine(text);
+			if (isDebug && outputFunc != null)
+				Console.WriteLine(Environment.NewLine + outputFunc());
 		}
 	}
 
@@ -196,15 +207,15 @@ namespace Git_CI_Tools.Commands
 		//public string Provider { get; set; }
 		//public Uri Url { get; set; }
 		//public string Token { get; set; }
-		public string Default { get; set; }
+		public string DefaultVersion { get; set; }
 
 		public bool IncludePrerelease { get; set; }
 
-		public bool Major { get; set; }
-		public bool Minor { get; set; }
-		public bool Patch { get; set; }
-		public string Prerelease { get; set; }
-		public string Build { get; set; }
+		public bool MajorVer { get; set; }
+		public bool MinorVer { get; set; }
+		public bool PatchVer { get; set; }
+		public string PrereleaseVer { get; set; }
+		public string BuildVer { get; set; }
 
 		public bool Force { get; set; }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibGit2Sharp;
@@ -32,6 +33,7 @@ namespace Git_CI_Tools
 
 			if (!string.IsNullOrEmpty(_path))
 				_repository = new Repository(_path);
+
 		}
 
 		public bool IsValid()
@@ -84,9 +86,12 @@ namespace Git_CI_Tools
 				commits = _repository.Branches[branch].Commits;
 
 			Commit fromCommit = null;
+
 			if (fromSha != null)
 			{
-				fromCommit = _repository.Commits.FirstOrDefault(x => x.Sha == fromSha);
+				var id = _repository.Lookup(fromSha);
+				if (id != null && id is Commit c)
+					fromCommit = c; // _repository.Commits.First(x => x.Sha == fromSha);
 			}
 
 			var fromDate = fromCommit?.Committer.When;

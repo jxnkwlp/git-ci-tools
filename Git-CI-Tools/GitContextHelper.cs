@@ -18,9 +18,11 @@ namespace Git_CI_Tools
 
 			if (!git.IsValid())
 			{
-				Console.Error.WriteLine("No git repo found at or above: \"{0}\"", project);
+				Console.Error.WriteLine("No git repo found at or above: \"{0}\". ", project);
 				return null;
 			}
+
+			Console.WriteLine($"Project: {git.Project}. ");
 
 			return git;
 		}
@@ -29,7 +31,7 @@ namespace Git_CI_Tools
 		{
 			if (tags.Count() == 0)
 			{
-				Console.Error.WriteLine("No tags found.");
+				Console.Error.WriteLine("No tags found. ");
 				return null;
 			}
 
@@ -58,12 +60,12 @@ namespace Git_CI_Tools
 
 			if (tags.Count == 0)
 			{
-				Console.Error.WriteLine("No tags found.");
+				Console.Error.WriteLine("No tags found. ");
 				return null;
 			}
 			else
 			{
-				Console.Out.WriteLine($"Find {tags.Count} tags:");
+				Console.Out.WriteLine($"Find {tags.Count} tags: ");
 				foreach (var item in tags.Take(5))
 				{
 					Console.Out.WriteLine($" - {item.Name}");
@@ -78,13 +80,16 @@ namespace Git_CI_Tools
 
 			if (versions.Count == 0)
 			{
-				Console.Error.WriteLine($"No tag found when uninclude pre-release version.");
+				Console.Error.WriteLine($"No tag found when uninclude pre-release version. ");
 				return null;
 			}
 
 			var find = versions.First();
 
-			Console.Out.WriteLine($"The Latest tag: {find.Value.Name}");
+			if (includePrerelease)
+				Console.Out.WriteLine($"The last preversion version is {find.Key}, tags: {find.Value.Name}. ");
+			else
+				Console.Out.WriteLine($"The last version is {find.Key}, tags: {find.Value.Name}. ");
 
 			return find.Value;
 		}
@@ -116,7 +121,16 @@ namespace Git_CI_Tools
 			return true;
 		}
 
-		public static SemVersion ResolverVersionFromCommit(GitContext gitContext, SemVersion version, string branch = null, string fromSha = null, bool major = false, bool minor = true, bool patch = false, string prerelease = null, string build = null)
+		public static SemVersion ResolverVersionFromCommit(
+			GitContext gitContext,
+			SemVersion version,
+			string branch = null,
+			string fromSha = null,
+			bool major = false,
+			bool minor = true,
+			bool patch = false,
+			string prerelease = null,
+			string build = null)
 		{
 			var commits = gitContext.GetCommits(branch, fromSha);
 

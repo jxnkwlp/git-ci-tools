@@ -76,7 +76,7 @@ namespace Git_CI_Tools
 		}
 
 
-		public static string GenerateNotes(string root, IEnumerable<GitCommit> commits, IGitProvider gitProvider)
+		public static string GenerateChanges(string root, IEnumerable<GitCommit> commits, IGitProvider gitProvider)
 		{
 			var options = ResolveConfig(root);
 
@@ -134,7 +134,7 @@ $CHANGES" : options.Template;
 
 				if (otherCommits.Any())
 				{
-					sb.AppendLine($"### Other changes");
+					sb.AppendLine($"### Changes");
 					otherCommits.ForEach(commit =>
 					{
 						sb.AppendLine($"* {commit.Sha} {commit.MessageShort.Trim()} (by {gitProvider.UserLink(commit.Author.Name, commit.Author.Email)})");
