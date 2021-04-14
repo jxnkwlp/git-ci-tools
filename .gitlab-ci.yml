@@ -33,10 +33,13 @@ get-version:
     - dotnet run -- release changes --branch "origin/feature/gitlab" -o $CI_PROJECT_DIR/CHANGELOG.md  --include-prerelease=false
     #
     - ls $CI_PROJECT_DIR
-  artifacts:
+
+    # 
+    - cat $CI_PROJECT_DIR/variables.env
+  artifacts: 
     paths:
       - CHANGELOG.md
-    reports:
+    reports: 
       dotenv: variables.env
 
 release_job:

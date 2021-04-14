@@ -1,8 +1,8 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using Semver;
 
@@ -64,7 +64,7 @@ namespace Git_CI_Tools.Commands
 
 				if (!string.IsNullOrEmpty(options.Output))
 				{
-					File.AppendAllLines(options.Output, new string[] { outputText });
+					FileHelper.AppendLine(options.Output, outputText);
 
 					Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ");
 				}
@@ -96,6 +96,8 @@ namespace Git_CI_Tools.Commands
 
 			command.AddOption(new Option<string>(new string[] { "--format" }, () => "text", "Output format: json/dotenv/text"));
 			command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "Output results to the specified file"));
+
+			command.AddOption(new Option<string>("dotenv-var-name"));
 
 			command.Handler = CommandHandler.Create<VersionNextOptions>(options =>
 			{
@@ -163,7 +165,16 @@ namespace Git_CI_Tools.Commands
 				}
 				else if (options.Format == "dotenv")
 				{
-					outputText = $"NEXT_VERSION={nextVersion}";
+					StringBuilder sb = new StringBuilder();
+					sb.AppendLine($"NEXT_VERSION={nextVersion}");
+					sb.AppendLine($"NEXT_VERSION_MINI={nextVersion.Change(build: null)}");
+					sb.AppendLine($"NEXT_VERSION_MAJOR={nextVersion.Major}");
+					sb.AppendLine($"NEXT_VERSION_MINOR={nextVersion.Minor}");
+					sb.AppendLine($"NEXT_VERSION_PATCH={nextVersion.Patch}");
+					sb.AppendLine($"NEXT_VERSION_PRERELEASE={nextVersion.Prerelease}");
+					sb.AppendLine($"NEXT_VERSION_BUILD={nextVersion.Build}");
+
+					outputText = sb.ToString().Trim();
 				}
 				else
 				{
@@ -172,7 +183,7 @@ namespace Git_CI_Tools.Commands
 
 				if (!string.IsNullOrEmpty(options.Output))
 				{
-					File.AppendAllLines(options.Output, new string[] { outputText });
+					FileHelper.AppendLine(options.Output, outputText);
 
 					Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ");
 				}
@@ -197,6 +208,8 @@ namespace Git_CI_Tools.Commands
 		public string Output { get; set; }
 
 		public bool IncludePrerelease { get; set; }
+
+		public string DotEnvVarName { get; set; }
 	}
 
 	public class VersionNextOptions
@@ -223,5 +236,7 @@ namespace Git_CI_Tools.Commands
 		public string Output { get; set; }
 
 		public bool DebugMode { get; set; }
+
+		public string DotEnvVarName { get; set; }
 	}
 }
