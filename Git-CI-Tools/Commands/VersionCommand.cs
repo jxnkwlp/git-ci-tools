@@ -30,6 +30,8 @@ namespace Git_CI_Tools.Commands
 			command.AddOption(new Option<string>(new string[] { "--format" }, () => "text", "Output format: json/dotenv/text"));
 			command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "Output results to the specified file"));
 
+			command.AddOption(new Option<string>("dotenv-var-name"));
+
 			command.Handler = CommandHandler.Create<VersionCurrentOptions>((options) =>
 			{
 				var git = GitContextHelper.InitProject(options.Project);
@@ -59,7 +61,20 @@ namespace Git_CI_Tools.Commands
 				}
 				else if (options.Format == "dotenv")
 				{
-					outputText = $"CURRENT_VERSION={currentVersion}";
+					string name = options.DotenvVarName;
+					if (string.IsNullOrEmpty(name))
+						name = "CURRENT_VERSION";
+
+					StringBuilder sb = new StringBuilder();
+					sb.AppendLine($"{name}={currentVersion}");
+					sb.AppendLine($"{name}_MINI={currentVersion.Change(build: "")}");
+					sb.AppendLine($"{name}_MAJOR={currentVersion.Major}");
+					sb.AppendLine($"{name}_MINOR={currentVersion.Minor}");
+					sb.AppendLine($"{name}_PATCH={currentVersion.Patch}");
+					sb.AppendLine($"{name}_PRERELEASE={currentVersion.Prerelease}");
+					sb.AppendLine($"{name}_BUILD={currentVersion.Build}");
+
+					outputText = sb.ToString().Trim();
 				}
 
 				if (!string.IsNullOrEmpty(options.Output))
@@ -165,14 +180,18 @@ namespace Git_CI_Tools.Commands
 				}
 				else if (options.Format == "dotenv")
 				{
+					string name = options.DotenvVarName;
+					if (string.IsNullOrEmpty(name))
+						name = "NEXT_VERSION";
+
 					StringBuilder sb = new StringBuilder();
-					sb.AppendLine($"NEXT_VERSION={nextVersion}");
-					sb.AppendLine($"NEXT_VERSION_MINI={nextVersion.Change(build: null)}");
-					sb.AppendLine($"NEXT_VERSION_MAJOR={nextVersion.Major}");
-					sb.AppendLine($"NEXT_VERSION_MINOR={nextVersion.Minor}");
-					sb.AppendLine($"NEXT_VERSION_PATCH={nextVersion.Patch}");
-					sb.AppendLine($"NEXT_VERSION_PRERELEASE={nextVersion.Prerelease}");
-					sb.AppendLine($"NEXT_VERSION_BUILD={nextVersion.Build}");
+					sb.AppendLine($"{name}={nextVersion}");
+					sb.AppendLine($"{name}_MINI={nextVersion.Change(build: "")}");
+					sb.AppendLine($"{name}_MAJOR={nextVersion.Major}");
+					sb.AppendLine($"{name}_MINOR={nextVersion.Minor}");
+					sb.AppendLine($"{name}_PATCH={nextVersion.Patch}");
+					sb.AppendLine($"{name}_PRERELEASE={nextVersion.Prerelease}");
+					sb.AppendLine($"{name}_BUILD={nextVersion.Build}");
 
 					outputText = sb.ToString().Trim();
 				}
@@ -209,7 +228,7 @@ namespace Git_CI_Tools.Commands
 
 		public bool IncludePrerelease { get; set; }
 
-		public string DotEnvVarName { get; set; }
+		public string DotenvVarName { get; set; }
 	}
 
 	public class VersionNextOptions
@@ -237,6 +256,6 @@ namespace Git_CI_Tools.Commands
 
 		public bool DebugMode { get; set; }
 
-		public string DotEnvVarName { get; set; }
+		public string DotenvVarName { get; set; }
 	}
 }
