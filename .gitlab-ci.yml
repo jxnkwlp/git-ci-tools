@@ -1,10 +1,20 @@
 stages:
+  - source
   - version
   - release
+  - pack
 
 workflow:
   rules:
     - if: $CI_COMMIT_TAG == null
+
+dotnet-build:
+  stage: source
+  image: mcr.microsoft.com/dotnet/sdk:5.0-alpine3.12
+  script:
+    - cd Git-CI-Tools
+    - dotnet restore
+    - dotnet build 
 
 get-version:
   stage: version
@@ -41,11 +51,11 @@ get-version:
     - cd Git-CI-Tools
     - dotnet restore
     #
-    - dotnet run -- version current -o $CI_PROJECT_DIR/variables.env --format dotenv
+    - dotnet run -- version current -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease=${VERSION_INCLUDE_PRERELEASE}
     #
-    - dotnet run -- version next --branch "origin/feature/gitlab" -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease  --prerelease-ver="dev.${CI_PIPELINE_ID}" --build-ver="$CI_COMMIT_SHORT_SHA"  --debug-mode
+    - dotnet run -- version next --branch "origin/feature/gitlab" -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease=${VERSION_INCLUDE_PRERELEASE}  --prerelease-ver="${VERSION_PRERELEASE}.${CI_PIPELINE_ID}" --build-ver="$CI_COMMIT_SHORT_SHA"  --debug-mode
     #
-    - dotnet run -- release changes --branch "origin/feature/gitlab" -o $CI_PROJECT_DIR/CHANGELOG.md  --include-prerelease=false
+    - dotnet run -- release changes --branch "origin/feature/gitlab" -o $CI_PROJECT_DIR/CHANGELOG.md  --include-prerelease=${VERSION_INCLUDE_PRERELEASE}
     #
     - ls $CI_PROJECT_DIR
 
@@ -71,3 +81,17 @@ release_job:
     description: CHANGELOG.md
     ref: "$CI_COMMIT_SHA"
     name: "Release $NEXT_VERSION"
+
+
+pack-to-server:
+  stage: pack
+  image: mcr.microsoft.com/dotnet/sdk:5.0-alpine3.12
+  script:
+    - cd Git-CI-Tools
+    - dotnet restore 
+    - dotnet pack -o $CI_PROJECT_DIR
+    #
+    # - dotnet nuget push -s http://192.168.1.90:18050/v3/index.json $CI_PROJECT_DIR/Passingwind.Git-CI-Tools.nupkg
+  #artifacts:
+  #  paths:
+  #    - $CI_PROJECT_DIR/*.nupkg
