@@ -2,12 +2,13 @@
   major:
     commits:
       - "Major"
-      - "[break changes]"
+      - "[break changes]" 
     labels:
       - "Versioning - major"
   minor:
     commits:
       - "[feat]"
+      - "[minor]"
     labels:
       - "Versioning - Minor"
   patch:
