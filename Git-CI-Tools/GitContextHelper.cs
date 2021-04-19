@@ -129,8 +129,8 @@ namespace Git_CI_Tools
 			bool major = false,
 			bool minor = true,
 			bool patch = false,
-			string prerelease = null,
-			string build = null)
+			string prerelease = "",
+			string build = "")
 		{
 			var commits = gitContext.GetCommits(branch, fromSha);
 

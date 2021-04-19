@@ -164,8 +164,8 @@ namespace Git_CI_Tools.Commands
 					options.MajorVer,
 					options.MinorVer,
 					options.PatchVer,
-					options.PrereleaseVer,
-					options.BuildVer);
+					options.PrereleaseVer ?? "",
+					options.BuildVer ?? "");
 
 				if (nextVersion.ToString() == currentVersion.ToString() && options.Force)
 					nextVersion = VersionGenerater.Next(currentVersion, patch: true);
