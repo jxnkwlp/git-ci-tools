@@ -67,7 +67,7 @@ namespace Git_CI_Tools.Commands
 				Console.Out.WriteLine($"Find {commits.Count()} commits. ");
 
 				// generate changes			
-				string notes = ReleaseHelper.GenerateChanges(git.Project, commits, gitProvider);
+				string notes = ReleaseConfigHelper.GenerateChanges(git.Project, commits, gitProvider);
 
 				// output 
 				if (!string.IsNullOrEmpty(options.Output))

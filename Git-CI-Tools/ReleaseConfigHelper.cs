@@ -8,9 +8,9 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Git_CI_Tools
 {
-	public static class ReleaseHelper
+	public static class ReleaseConfigHelper
 	{
-		private static ReleaseConfigOptions _userConfigOptions = null;
+		private static ReleaseConfigOptions _releaseConfigOptions = null;
 
 		public static bool IsMajor(string root, IEnumerable<GitCommit> commits)
 		{
@@ -155,8 +155,8 @@ $CHANGES" : options.Template;
 
 		public static ReleaseConfigOptions ResolveConfig(string dir)
 		{
-			if (_userConfigOptions != null)
-				return _userConfigOptions;
+			if (_releaseConfigOptions != null)
+				return _releaseConfigOptions;
 
 			var file = Path.Combine(dir, ".gitci", "release-config.yml");
 
@@ -170,7 +170,7 @@ $CHANGES" : options.Template;
 				options = deserializer.Deserialize<ReleaseConfigOptions>(File.ReadAllText(file));
 			}
 
-			_userConfigOptions = options ??= new ReleaseConfigOptions();
+			_releaseConfigOptions = options ??= new ReleaseConfigOptions();
 
 			return options;
 		}

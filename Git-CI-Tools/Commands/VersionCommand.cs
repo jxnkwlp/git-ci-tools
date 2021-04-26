@@ -51,7 +51,7 @@ namespace Git_CI_Tools.Commands
 
 				var currentVersion = version;
 
-				Console.Out.WriteLine($"Current version: {currentVersion}. ");
+				Console.Out.WriteLine($"Current version: {currentVersion} ");
 
 				string outputText = currentVersion.ToString();
 
@@ -109,6 +109,8 @@ namespace Git_CI_Tools.Commands
 
 			command.AddOption(new Option<bool>("--force", "Force generation of the next version number"));
 
+			command.AddOption(new Option<bool>("--ignore-config"));
+
 			command.AddOption(new Option<string>(new string[] { "--format" }, () => "text", "Output format: json/dotenv/text"));
 			command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "Output results to the specified file"));
 
@@ -138,7 +140,7 @@ namespace Git_CI_Tools.Commands
 					currentVersion = VersionGenerater.Parse(options.DefaultVersion);
 				}
 
-				Console.Out.WriteLine($"Current version: {currentVersion}. ");
+				Console.Out.WriteLine($"Current version: {currentVersion} ");
 
 				DebugWrite(options.DebugMode, () => "Project branchs: " + Environment.NewLine + string.Join(Environment.NewLine, git.GetBranchs().Select(x => x.ToString())));
 
@@ -165,14 +167,15 @@ namespace Git_CI_Tools.Commands
 					options.MinorVer,
 					options.PatchVer,
 					options.PrereleaseVer ?? "",
-					options.BuildVer ?? "");
+					options.BuildVer ?? "",
+					options.IgnoreConfig);
 
 				if (nextVersion.ToString() == currentVersion.ToString() && options.Force)
 					nextVersion = VersionGenerater.Next(currentVersion, patch: true);
 
 				string outputText = nextVersion.ToString();
 
-				Console.Out.WriteLine($"The next version: {outputText}. ");
+				Console.Out.WriteLine($"The next version: {outputText} ");
 
 				if (options.Format == "json")
 				{
@@ -248,6 +251,8 @@ namespace Git_CI_Tools.Commands
 		public bool PatchVer { get; set; }
 		public string PrereleaseVer { get; set; }
 		public string BuildVer { get; set; }
+
+		public bool IgnoreConfig { get; set; }
 
 		public bool Force { get; set; }
 

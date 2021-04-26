@@ -22,12 +22,12 @@ namespace Git_CI_Tools
 				return null;
 			}
 
-			Console.WriteLine($"Project: {git.Project}. ");
+			Console.WriteLine($"Project: {git.Project} ");
 
 			return git;
 		}
 
-		public static Dictionary<SemVersion, GitTags> GetVersionFromTags(IEnumerable<GitTags> tags, bool includePrerelease = false)
+		public static Dictionary<SemVersion, GitTags> GetVersionsFromTags(IEnumerable<GitTags> tags, bool includePrerelease = false)
 		{
 			if (tags.Count() == 0)
 			{
@@ -66,17 +66,15 @@ namespace Git_CI_Tools
 			else
 			{
 				Console.Out.WriteLine($"Find {tags.Count} tags: ");
-				foreach (var item in tags.Take(5))
+				foreach (var item in tags.Take(6))
 				{
 					Console.Out.WriteLine($" - {item.Name}");
 				}
-				if (tags.Count > 5)
-					Console.Out.WriteLine("and more ... ");
-				// Console.Out.WriteLine(Environment.NewLine);
+				if (tags.Count > 6)
+					Console.Out.WriteLine("  and more ... ");
 			}
 
-
-			var versions = GetVersionFromTags(tags, includePrerelease);
+			var versions = GetVersionsFromTags(tags, includePrerelease);
 
 			if (versions.Count == 0)
 			{
@@ -87,9 +85,9 @@ namespace Git_CI_Tools
 			var find = versions.First();
 
 			if (includePrerelease)
-				Console.Out.WriteLine($"The last preversion version is {find.Key}, tags: {find.Value.Name}. ");
+				Console.Out.WriteLine($"The last preversion version is {find.Key}, tags: {find.Value.Name} ");
 			else
-				Console.Out.WriteLine($"The last version is {find.Key}, tags: {find.Value.Name}. ");
+				Console.Out.WriteLine($"The last version is {find.Key}, tags: {find.Value.Name} ");
 
 			return find.Value;
 		}
@@ -130,19 +128,20 @@ namespace Git_CI_Tools
 			bool minor = true,
 			bool patch = false,
 			string prerelease = "",
-			string build = "")
+			string build = "",
+			bool ignoreConfig = false)
 		{
 			var commits = gitContext.GetCommits(branch, fromSha);
 
 			SemVersion result = version;
 
-			if (major || ReleaseHelper.IsMajor(gitContext.Project, commits))
+			if (!ignoreConfig && major || ReleaseConfigHelper.IsMajor(gitContext.Project, commits))
 				result = VersionGenerater.Next(result, major: true);
 
-			else if (!major && (ReleaseHelper.IsMinor(gitContext.Project, commits) || minor))
+			else if (!ignoreConfig && !major && (ReleaseConfigHelper.IsMinor(gitContext.Project, commits) || minor))
 				result = VersionGenerater.Next(result, minor: true);
 
-			else if (!major && !minor && (ReleaseHelper.IsPatch(gitContext.Project, commits) || patch))
+			else if (!ignoreConfig && !major && !minor && (ReleaseConfigHelper.IsPatch(gitContext.Project, commits) || patch))
 				result = VersionGenerater.Next(result, patch: true);
 
 			result = VersionGenerater.Next(result, prerelease: prerelease, build: build);
