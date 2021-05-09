@@ -8,7 +8,7 @@ Usage:
 
 Commands:
   current    Show current version
-  next       Generate next version  
+  next       Generate next version
 ```
 
 ``` shell
@@ -18,5 +18,5 @@ Usage:
   Git-CI-Tools release [command]
 
 Commands:
-  notes    Generate notes from commit logs
+  changes    Generate changes from commit logs
 ```

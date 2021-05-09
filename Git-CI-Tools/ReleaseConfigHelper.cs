@@ -8,9 +8,9 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace Git_CI_Tools
 {
-	public static class ReleaseHelper
+	public static class ReleaseConfigHelper
 	{
-		private static ReleaseConfigOptions _userConfigOptions = null;
+		private static ReleaseConfigOptions _releaseConfigOptions = null;
 
 		public static bool IsMajor(string root, IEnumerable<GitCommit> commits)
 		{
@@ -76,7 +76,7 @@ namespace Git_CI_Tools
 		}
 
 
-		public static string GenerateNotes(string root, IEnumerable<GitCommit> commits, IGitProvider gitProvider)
+		public static string GenerateChanges(string root, IEnumerable<GitCommit> commits, IGitProvider gitProvider)
 		{
 			var options = ResolveConfig(root);
 
@@ -105,7 +105,7 @@ $CHANGES" : options.Template;
 				{
 					if (cate.Commits?.Any() == true)
 					{
-						var list = commits.Where(x => cate.Commits.All(s => x.Message.Contains(s))).ToList();
+						var list = commits.Where(x => cate.Commits.Any(s => x.Message.Contains(s))).ToList();
 
 						cateCommits[cate.Title] = list;
 					}
@@ -134,7 +134,7 @@ $CHANGES" : options.Template;
 
 				if (otherCommits.Any())
 				{
-					sb.AppendLine($"### Other changes");
+					sb.AppendLine($"### Changes");
 					otherCommits.ForEach(commit =>
 					{
 						sb.AppendLine($"* {commit.Sha} {commit.MessageShort.Trim()} (by {gitProvider.UserLink(commit.Author.Name, commit.Author.Email)})");
@@ -155,8 +155,8 @@ $CHANGES" : options.Template;
 
 		public static ReleaseConfigOptions ResolveConfig(string dir)
 		{
-			if (_userConfigOptions != null)
-				return _userConfigOptions;
+			if (_releaseConfigOptions != null)
+				return _releaseConfigOptions;
 
 			var file = Path.Combine(dir, ".gitci", "release-config.yml");
 
@@ -170,7 +170,7 @@ $CHANGES" : options.Template;
 				options = deserializer.Deserialize<ReleaseConfigOptions>(File.ReadAllText(file));
 			}
 
-			_userConfigOptions = options ??= new ReleaseConfigOptions();
+			_releaseConfigOptions = options ??= new ReleaseConfigOptions();
 
 			return options;
 		}

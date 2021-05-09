@@ -12,22 +12,24 @@ namespace Git_CI_Tools.Commands
 		{
 			var command = new Command("release");
 
-			command.AddCommand(NotesCommand());
+			command.AddCommand(ChangesCommand());
 
 			return command;
 		}
 
-		private Command NotesCommand()
+		private Command ChangesCommand()
 		{
-			var command = new Command("notes", "Generate notes from commit logs.");
+			var command = new Command("changes", "Generate changes from commit logs");
 
-			command.AddOption(new Option<string>("--project", "", "The project root path.") { Required = false });
-			command.AddOption(new Option<bool>("--include-prerelease", false));
+			command.AddOption(new Option<string>("--project", "The project root path"));
+			command.AddOption(new Option<bool>("--include-prerelease", () => false));
+
+			command.AddOption(new Option<string>("--branch"));
 
 			command.AddOption(new Option<string>("--provider"));
 			command.AddOption(new Option<string>("--server-url"));
 
-			command.AddOption(new Option<string>("--output"));
+			command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "Output results to the specified file"));
 
 			command.Handler = CommandHandler.Create<ReleaseNoteCommandOption>(options =>
 			{
@@ -37,30 +39,46 @@ namespace Git_CI_Tools.Commands
 					return;
 				}
 
+				IGitProvider gitProvider = GitProviderFactory.Create(options.Provider, options.ServerUrl);
+
+				// init git context
 				var git = GitContextHelper.InitProject(options.Project);
+
+				if (git == null)
+					return;
 
 				var tag = GitContextHelper.FindLatestTag(git, options.IncludePrerelease);
 
-				var branch = git.GetCurrentBranch();
+				// check branch 
+				if (string.IsNullOrEmpty(options.Branch))
+					options.Branch = git.GetCurrentBranch()?.Name;
 
-				Console.Out.WriteLine($"Current branch: {branch.Name}");
+				if (!git.BranchExisting(options.Branch))
+				{
+					Console.Error.WriteLine($"The branch '{options.Branch}' not found. ");
+					return;
+				}
 
-				var commits = git.GetCommits(branch.Name, fromSha: tag.Sha).ToList();
+				Console.Out.WriteLine($"Current branch: {options.Branch}. ");
 
-				Console.Out.WriteLine($"Find {commits.Count()} commits.");
+				// find commits 
+				var commits = git.GetCommits(options.Branch, fromSha: tag?.Sha).ToList();
 
-				IGitProvider gitProvider = GitProviderFactory.Create(options.Provider, options.ServerUrl);
+				Console.Out.WriteLine($"Find {commits.Count()} commits. ");
 
-				string notes = ReleaseHelper.GenerateNotes(git.Project, commits, gitProvider);
+				// generate changes			
+				string notes = ReleaseConfigHelper.GenerateChanges(git.Project, commits, gitProvider);
 
-				Console.Out.WriteLine($"Release notes generated.");
-
+				// output 
 				if (!string.IsNullOrEmpty(options.Output))
 				{
 					File.WriteAllText(options.Output, notes);
+
+					Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ");
 				}
 				else
 				{
+					Console.Out.WriteLine($"Release notes generated. {Environment.NewLine}. ");
 					Console.Out.WriteLine(notes);
 				}
 			});
@@ -71,9 +89,12 @@ namespace Git_CI_Tools.Commands
 
 	public class ReleaseNoteCommandOption
 	{
+
 		public string Provider { get; set; }
 		public string ServerUrl { get; set; }
+
 		public string Project { get; set; }
+		public string Branch { get; set; }
 		public bool IncludePrerelease { get; set; }
 
 		public string Output { get; set; }

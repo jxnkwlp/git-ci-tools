@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibGit2Sharp;
@@ -15,19 +16,29 @@ namespace Git_CI_Tools
 
 		public GitContext(string path)
 		{
-			_path = path;
+			if (string.IsNullOrWhiteSpace(path))
+			{
+				throw new ArgumentException($"'{nameof(path)}' cannot be null", nameof(path));
+			}
 
-			string dir = Repository.Discover(path);
+			if (Repository.IsValid(path))
+				_path = path;
+			else
+			{
+				string dir = Repository.Discover(path);
 
-			if (!string.IsNullOrEmpty(dir))
-				_path = dir;
+				if (!string.IsNullOrEmpty(dir))
+					_path = dir;
+			}
 
-			_repository = new Repository(_path);
+			if (!string.IsNullOrEmpty(_path))
+				_repository = new Repository(_path);
+
 		}
 
 		public bool IsValid()
 		{
-			return Repository.IsValid(_path);
+			return _repository != null;
 		}
 
 		// public string HeadSha => _repository.Commits.First().Sha;
@@ -53,6 +64,20 @@ namespace Git_CI_Tools
 			};
 		}
 
+		public IReadOnlyList<GitBranch> GetBranchs()
+		{
+			return _repository.Branches.Select(x => new GitBranch()
+			{
+				Name = x.FriendlyName,
+				Sha = x.Tip.Sha,
+			}).ToList();
+		}
+
+		public bool BranchExisting(string name)
+		{
+			return _repository.Branches.Any(x => x.FriendlyName == name);
+		}
+
 		public IReadOnlyList<GitCommit> GetCommits(string branch = null, string fromSha = null)
 		{
 			ICommitLog commits = _repository.Commits;
@@ -61,9 +86,12 @@ namespace Git_CI_Tools
 				commits = _repository.Branches[branch].Commits;
 
 			Commit fromCommit = null;
+
 			if (fromSha != null)
 			{
-				fromCommit = _repository.Commits.FirstOrDefault(x => x.Sha == fromSha);
+				var id = _repository.Lookup(fromSha);
+				if (id != null && id is Commit c)
+					fromCommit = c; // _repository.Commits.First(x => x.Sha == fromSha);
 			}
 
 			var fromDate = fromCommit?.Committer.When;
@@ -98,6 +126,11 @@ namespace Git_CI_Tools
 		public string Message { get; set; }
 		public string Sha { get; set; }
 		public string Time { get; set; }
+
+		public override string ToString()
+		{
+			return $"{Name} => {Sha}";
+		}
 	}
 
 	public class GitCommit
@@ -156,5 +189,10 @@ namespace Git_CI_Tools
 	{
 		public string Name { get; set; }
 		public string Sha { get; set; }
+
+		public override string ToString()
+		{
+			return $"{Name} => {Sha}";
+		}
 	}
 }

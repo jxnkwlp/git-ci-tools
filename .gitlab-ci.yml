@@ -1,0 +1,97 @@
+stages:
+  - source
+  - version
+  - release
+  - pack
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG == null
+
+dotnet-build:
+  stage: source
+  image: mcr.microsoft.com/dotnet/sdk:5.0-alpine3.12
+  script:
+    - cd Git-CI-Tools
+    - dotnet restore
+    - dotnet build 
+
+get-version:
+  stage: version
+  image: mcr.microsoft.com/dotnet/sdk:5.0-alpine3.12
+  variables:
+    VERSION_PRERELEASE: "" 
+    VERSION_INCLUDE_PRERELEASE: "false"
+  rules: 
+    - if: $CI_COMMIT_BRANCH == "mater"
+      variables:
+        VERSION_PRERELEASE: "" 
+    - if: '$CI_COMMIT_BRANCH =~ /release/ || $CI_COMMIT_BRANCH =~ /hotfix/'
+      variables:
+        VERSION_PRERELEASE: "rc"  
+    - if: $CI_COMMIT_BRANCH =~ /develop/
+      variables:
+        VERSION_PRERELEASE: "bata" 
+    - if: $CI_COMMIT_BRANCH =~ /feature/
+      variables:
+        VERSION_PRERELEASE: "alpha"
+        VERSION_INCLUDE_PRERELEASE: "true"
+  before_script:
+    - echo 'running generate version'
+    - export PATH="$PATH:/root/.dotnet/tools"
+  script:
+    - export
+    - echo $CI_COMMIT_REF_NAME
+    - echo $CI_COMMIT_BRANCH
+    # - dotnet tool install -g Passingwind.Git-CI-Tools --version 0.1.0-pre.3
+    # - gitci version current -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease
+    # - gitci version next --branch="origin/${CI_COMMIT_REF_NAME}" -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease  --prerelease="dev" --build=$CI_COMMIT_SHORT_SHA  --debug-mode
+    # - gitci release notes --branch="origin/${CI_COMMIT_REF_NAME}" -o $CI_PROJECT_DIR/CHANGELOG.md  --include-prerelease=false
+    #
+    - cd Git-CI-Tools
+    - dotnet restore
+    #
+    - dotnet run -- version current -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease=${VERSION_INCLUDE_PRERELEASE}
+    #
+    - dotnet run -- version next --branch "origin/feature/gitlab" -o $CI_PROJECT_DIR/variables.env --format dotenv --include-prerelease=${VERSION_INCLUDE_PRERELEASE}  --prerelease-ver="${VERSION_PRERELEASE}.${CI_PIPELINE_ID}" --build-ver="$CI_COMMIT_SHORT_SHA"  --debug-mode
+    #
+    - dotnet run -- release changes --branch "origin/feature/gitlab" -o $CI_PROJECT_DIR/CHANGELOG.md  --include-prerelease=${VERSION_INCLUDE_PRERELEASE}
+    #
+    - ls $CI_PROJECT_DIR
+
+    # 
+    - cat $CI_PROJECT_DIR/variables.env
+  artifacts: 
+    paths:
+      - CHANGELOG.md
+    reports: 
+      dotenv: variables.env
+
+release_job:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  
+  needs:
+    - job: get-version
+      artifacts: true
+  script:
+    - echo "running release job for $NEXT_VERSION"
+  release:
+    tag_name: "v$NEXT_VERSION"
+    description: CHANGELOG.md
+    ref: "$CI_COMMIT_SHA"
+    name: "Release $NEXT_VERSION"
+
+
+pack-to-server:
+  stage: pack
+  image: mcr.microsoft.com/dotnet/sdk:5.0-alpine3.12
+  script:
+    - cd Git-CI-Tools
+    - dotnet restore 
+    - dotnet pack -o $CI_PROJECT_DIR
+    #
+    # - dotnet nuget push -s http://192.168.1.90:18050/v3/index.json $CI_PROJECT_DIR/Passingwind.Git-CI-Tools.nupkg
+  #artifacts:
+  #  paths:
+  #    - $CI_PROJECT_DIR/*.nupkg
