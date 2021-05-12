@@ -97,6 +97,7 @@ namespace Git_CI_Tools.Commands
 
 			command.AddOption(new Option<string>("--project", "The project root path"));
 			command.AddOption(new Option<string>("--default-version", () => "1.0.0", "Default version"));
+			command.AddOption(new Option<string>("--current-version", "Set the current version and not detect from tags"));
 			command.AddOption(new Option<string>("--branch"));
 
 			command.AddOption(new Option<bool>("--include-prerelease", () => false));
@@ -123,21 +124,30 @@ namespace Git_CI_Tools.Commands
 				if (git == null)
 					return;
 
-				var tag = GitContextHelper.FindLatestTag(git, options.IncludePrerelease);
+				GitTags tag = null;
 
 				SemVersion currentVersion = VersionGenerater.New();
 
-				if (tag != null && GitContextHelper.TryParseTagAsVersion(tag.Name, out currentVersion))
+				if (!string.IsNullOrEmpty(options.CurrentVersion))
 				{
-					// 
-					// Console.Out.WriteLine("Current version: " + currentVersion);
+					currentVersion = VersionGenerater.Parse(options.CurrentVersion);
 				}
 				else
 				{
-					if (string.IsNullOrEmpty(options.DefaultVersion))
-						options.DefaultVersion = "1.0.0";
+					tag = GitContextHelper.FindLatestTag(git, options.IncludePrerelease);
 
-					currentVersion = VersionGenerater.Parse(options.DefaultVersion);
+					if (tag != null && GitContextHelper.TryParseTagAsVersion(tag.Name, out currentVersion))
+					{
+						// 
+						// Console.Out.WriteLine("Current version: " + currentVersion);
+					}
+					else
+					{
+						if (string.IsNullOrEmpty(options.DefaultVersion))
+							options.DefaultVersion = "1.0.0";
+
+						currentVersion = VersionGenerater.Parse(options.DefaultVersion);
+					}
 				}
 
 				Console.Out.WriteLine($"Current version: {currentVersion} ");
@@ -243,6 +253,7 @@ namespace Git_CI_Tools.Commands
 		//public Uri Url { get; set; }
 		//public string Token { get; set; }
 		public string DefaultVersion { get; set; }
+		public string CurrentVersion { get; set; }
 
 		public bool IncludePrerelease { get; set; }
 

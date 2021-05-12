@@ -3,7 +3,7 @@
 namespace Git_CI_Tools
 {
 	/// <summary>
-	///  1.0.0-rc+027dfeea
+	///  version sample => 1.0.5-rc+027dfeea
 	/// </summary>
 	public class VersionGenerater
 	{
