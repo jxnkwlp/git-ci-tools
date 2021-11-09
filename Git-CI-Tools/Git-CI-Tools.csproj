@@ -13,14 +13,21 @@
 		<RepositoryType>github</RepositoryType>
 		<PackageProjectUrl>https://github.com/jxnkwlp/git-ci-tools</PackageProjectUrl>
 		<PackageTags>ci, git</PackageTags>
-		<Version>0.1.2</Version>
+		<Version>0.2.2</Version>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+		<Description>An tool for ci base on git repository.  can generate version, changes notes etc.</Description>
 	</PropertyGroup>
 
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+    
 	<ItemGroup>
-		<PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
+		<PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
 		<PackageReference Include="LibGit2Sharp" Version="0.26.2" />
-		<PackageReference Include="YamlDotNet" Version="11.1.1" />
+		<PackageReference Include="YamlDotNet" Version="11.2.1" />
 		<PackageReference Include="semver" Version="2.0.6" />
+		<PackageReference Include="Pastel" Version="2.1.0" />
 	</ItemGroup>
 
 </Project>

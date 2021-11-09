@@ -1,152 +1,176 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using Pastel;
 using Semver;
 
 namespace Git_CI_Tools
 {
-	public static class GitContextHelper
-	{
-		public static GitContext InitProject(string project)
-		{
-			var path = project;
-			if (string.IsNullOrEmpty(project))
-				path = Directory.GetCurrentDirectory();
+    public static class GitContextHelper
+    {
+        public static GitContext InitProject(string project)
+        {
+            var path = project;
+            if (string.IsNullOrEmpty(project))
+                path = Directory.GetCurrentDirectory();
 
-			var git = new GitContext(path);
+            var git = new GitContext(path);
 
-			if (!git.IsValid())
-			{
-				Console.Error.WriteLine("No git repo found at or above: \"{0}\". ", project);
-				return null;
-			}
+            if (!git.IsValid())
+            {
+                Console.Error.WriteLine("No git repo found at or above: \"{0}\". ".Pastel(Color.Red), project);
+                return null;
+            }
 
-			Console.WriteLine($"Project: {git.Project} ");
+            Console.WriteLine($"Project: {git.Project} ".Pastel(Color.Green));
 
-			return git;
-		}
+            return git;
+        }
 
-		public static Dictionary<SemVersion, GitTags> GetVersionsFromTags(IEnumerable<GitTags> tags, bool includePrerelease = false)
-		{
-			if (tags.Count() == 0)
-			{
-				Console.Error.WriteLine("No tags found. ");
-				return null;
-			}
+        public static Dictionary<SemVersion, GitTags> GetVersionsFromTags(IEnumerable<GitTags> tags, bool includePrerelease = false)
+        {
+            if (tags.Count() == 0)
+            {
+                Console.Error.WriteLine("No tags found. ".Pastel(Color.Yellow));
+                return null;
+            }
 
-			var result = new List<KeyValuePair<SemVersion, GitTags>>();
+            var result = new List<KeyValuePair<SemVersion, GitTags>>();
 
-			foreach (var tag in tags)
-			{
-				if (TryParseTagAsVersion(tag.Name, out var v))
-				{
-					if (!result.Any(x => x.Key == v))
-						result.Add(new KeyValuePair<SemVersion, GitTags>(v, tag));
-				}
-			}
+            foreach (var tag in tags)
+            {
+                if (TryParseTagAsVersion(tag.Name, out var v))
+                {
+                    if (!result.Any(x => x.Key == v))
+                        result.Add(new KeyValuePair<SemVersion, GitTags>(v, tag));
+                }
+            }
 
-			if (!includePrerelease)
-			{
-				result = result.Where(x => string.IsNullOrEmpty(x.Key.Prerelease)).ToList();
-			}
+            if (!includePrerelease)
+            {
+                result = result.Where(x => string.IsNullOrEmpty(x.Key.Prerelease)).ToList();
+            }
 
-			return result.OrderByDescending(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
-		}
+            return result.OrderByDescending(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+        }
 
-		public static GitTags FindLatestTag(GitContext git, bool includePrerelease = false)
-		{
-			var tags = git.GetTags().ToList();
+        public static GitTags FindLatestTag(GitContext git, bool includePrerelease = false)
+        {
+            var tags = git.GetTags().ToList();
 
-			if (tags.Count == 0)
-			{
-				Console.Error.WriteLine("No tags found. ");
-				return null;
-			}
-			else
-			{
-				Console.Out.WriteLine($"Find {tags.Count} tags: ");
-				foreach (var item in tags.Take(6))
-				{
-					Console.Out.WriteLine($" - {item.Name}");
-				}
-				if (tags.Count > 6)
-					Console.Out.WriteLine("  and more ... ");
-			}
+            if (tags.Count == 0)
+            {
+                Console.Error.WriteLine("No tags found. ".Pastel(Color.Yellow));
+                return null;
+            }
+            else
+            {
+                Console.Out.WriteLine($"Find {tags.Count} tags ");
+                Console.Out.WriteLine($"Show top 6 tags:");
+                foreach (var item in tags.Take(6))
+                {
+                    Console.Out.WriteLine($" - {item.Name}");
+                }
+            }
 
-			var versions = GetVersionsFromTags(tags, includePrerelease);
+            var versions = GetVersionsFromTags(tags, includePrerelease);
 
-			if (versions.Count == 0)
-			{
-				Console.Error.WriteLine($"No tag found when uninclude pre-release version. ");
-				return null;
-			}
+            if (versions.Count == 0)
+            {
+                Console.Error.WriteLine($"No tag found when uninclude pre-release version. ".Pastel(Color.Yellow));
+                return null;
+            }
 
-			var find = versions.First();
+            var find = versions.First();
 
-			if (includePrerelease)
-				Console.Out.WriteLine($"The last preversion version is {find.Key}, tags: {find.Value.Name} ");
-			else
-				Console.Out.WriteLine($"The last version is {find.Key}, tags: {find.Value.Name} ");
+            if (includePrerelease)
+                Console.Out.WriteLine($"The last preversion version is {find.Key}, tags: {find.Value.Name} ".Pastel(Color.Green));
+            else
+                Console.Out.WriteLine($"The last version is {find.Key}, tags: {find.Value.Name} ".Pastel(Color.Green));
 
-			return find.Value;
-		}
+            return find.Value;
+        }
 
-		public static bool TryParseTagAsVersion(string tagName, out SemVersion version)
-		{
-			version = null;
-			int index = -1;
+        public static bool TryParseTagAsVersion(string tagName, out SemVersion version)
+        {
+            version = null;
+            int index = -1;
 
-			for (int i = 0; i < tagName.Length; i++)
-			{
-				if (char.IsDigit(tagName[i]))
-				{
-					index = i;
-					break;
-				}
-			}
+            for (int i = 0; i < tagName.Length; i++)
+            {
+                if (char.IsDigit(tagName[i]))
+                {
+                    index = i;
+                    break;
+                }
+            }
 
-			if (index == -1) return false;
+            if (index == -1) return false;
 
-			var v = tagName.Substring(index);
+            var v = tagName.Substring(index);
 
-			if (!SemVersion.TryParse(v, out version))
-			{
-				// Console.Error.WriteLine($"The tag '{tagName}' can't parse as version.");
-				return false;
-			}
+            if (!SemVersion.TryParse(v, out version))
+            {
+                // Console.Error.WriteLine($"The tag '{tagName}' can't parse as version.");
+                return false;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		public static SemVersion ResolverVersionFromCommit(
-			GitContext gitContext,
-			SemVersion version,
-			string branch = null,
-			string fromSha = null,
-			bool major = false,
-			bool minor = true,
-			bool patch = false,
-			string prerelease = "",
-			string build = "",
-			bool ignoreConfig = false)
-		{
-			var commits = gitContext.GetCommits(branch, fromSha);
+        public static SemVersion ResolverVersionFromCommit(
+            GitContext gitContext,
+            SemVersion version,
+            string branch = null,
+            string fromSha = null,
+            bool major = false,
+            bool minor = true,
+            bool patch = false,
+            string prerelease = "",
+            string build = "",
+            bool ignoreConfig = false)
+        {
+            var commits = gitContext.GetCommits(branch, fromSha);
 
-			SemVersion result = version;
+            SemVersion result = version;
 
-			if (!ignoreConfig && major || ReleaseConfigHelper.IsMajor(gitContext.Project, commits))
-				result = VersionGenerater.Next(result, major: true);
+            if (!ignoreConfig && major || ReleaseConfigHelper.IsMajor(gitContext.Project, commits))
+                result = VersionGenerater.Next(result, major: true);
 
-			else if (!ignoreConfig && !major && (ReleaseConfigHelper.IsMinor(gitContext.Project, commits) || minor))
-				result = VersionGenerater.Next(result, minor: true);
+            else if (!ignoreConfig && !major && (ReleaseConfigHelper.IsMinor(gitContext.Project, commits) || minor))
+                result = VersionGenerater.Next(result, minor: true);
 
-			else if (!ignoreConfig && !major && !minor && (ReleaseConfigHelper.IsPatch(gitContext.Project, commits) || patch))
-				result = VersionGenerater.Next(result, patch: true);
+            else if (!ignoreConfig && !major && !minor && (ReleaseConfigHelper.IsPatch(gitContext.Project, commits) || patch))
+                result = VersionGenerater.Next(result, patch: true);
 
-			result = VersionGenerater.Next(result, prerelease: prerelease, build: build);
+            result = VersionGenerater.Next(result, prerelease: prerelease, build: build);
 
-			return result;
-		}
-	}
+            return result;
+        }
+
+        public static Dictionary<string, IReadOnlyList<GitCommit>> SplitCommits(IEnumerable<GitCommit> commits, string[] filePaths)
+        {
+            Dictionary<string, IReadOnlyList<GitCommit>> result = new Dictionary<string, IReadOnlyList<GitCommit>>();
+
+            foreach (var filePath in filePaths)
+            {
+                var _commits = new List<GitCommit>();
+
+                foreach (var commit in commits)
+                {
+                    if (commit.ChangedFiles.Any(x => x.Path.StartsWith(filePath)))
+                    {
+                        _commits.Add(commit);
+                    }
+                }
+
+                result[filePath] = _commits;
+            }
+
+            return result;
+        }
+
+    }
 }
