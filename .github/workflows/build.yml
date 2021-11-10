@@ -2,14 +2,14 @@
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, githubaction ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, githubaction ]
 
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
