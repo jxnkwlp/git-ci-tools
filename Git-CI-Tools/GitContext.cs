@@ -49,7 +49,7 @@ namespace Git_CI_Tools
                 Name = x.FriendlyName,
                 Message = ((Commit)x.Target).Message,
                 Sha = x.Target.Sha,
-            }).ToList();
+            }).OrderByDescending(x => x.Name).ToList();
         }
 
         public GitBranch GetCurrentBranch()

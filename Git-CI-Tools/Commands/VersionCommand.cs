@@ -56,15 +56,15 @@ namespace Git_CI_Tools.Commands
             command.AddOption(new Option<string>("--default-version", () => "1.0.0", "Default version"));
             command.AddOption(new Option<string>("--current-version", "Set the current version and not detect from tags"));
 
-            command.AddOption(new Option<bool>("--major-ver", "Whether incremental major version"));
-            command.AddOption(new Option<bool>("--minor-ver", "Whether incremental minor version"));
-            command.AddOption(new Option<bool>("--patch-ver", "Whether incremental patch version"));
+            command.AddOption(new Option<bool?>("--major-ver", "Whether incremental major version"));
+            command.AddOption(new Option<bool?>("--minor-ver", "Whether incremental minor version"));
+            command.AddOption(new Option<bool?>("--patch-ver", "Whether incremental patch version"));
             command.AddOption(new Option<string>("--prerelease-ver", "Set the prerelease version number"));
             command.AddOption(new Option<string>("--build-ver", "Set the build version number"));
+            command.AddOption(new Option<bool>("--auto-detect", () => true, "Auto detect "));
+            command.AddOption(new Option<bool>("--auto-detect-build-ver", () => true, "Auto detect prerelease build version. Default is git commit short sha number"));
 
-            command.AddOption(new Option<bool>("--force", "Force generation of the next version number"));
-
-            command.AddOption(new Option<bool>("--ignore-config"));
+            command.AddOption(new Option<bool>("--force-update", () => true, "Force generation of the next version number"));
 
             command.AddOption(new Option<string>(new string[] { "--format" }, () => "text", "Output format: json/dotenv/text"));
             command.AddOption(new Option<string>(new string[] { "--output", "-o" }, "Output results to the specified file"));
@@ -140,15 +140,19 @@ namespace Git_CI_Tools.Commands
         public string DefaultVersion { get; set; }
         public string CurrentVersion { get; set; }
 
-        public bool MajorVer { get; set; }
-        public bool MinorVer { get; set; }
-        public bool PatchVer { get; set; }
+        public bool? MajorVer { get; set; }
+        public bool? MinorVer { get; set; }
+        public bool? PatchVer { get; set; }
         public string PrereleaseVer { get; set; }
         public string BuildVer { get; set; }
 
-        public bool IgnoreConfig { get; set; }
+        public bool AutoDetect { get; set; }
 
-        public bool Force { get; set; }
+        public bool AutoDetectBuildVer { get; set; }
+
+        //public bool IgnoreConfig { get; set; }
+
+        public bool ForceUpdate { get; set; }
 
         public string DotenvVarName { get; set; }
 

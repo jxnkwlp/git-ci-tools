@@ -121,7 +121,7 @@ namespace Git_CI_Tools
 
             if (!GitContextHelper.TryParseTagAsVersion(tag.Name, out var version))
             {
-                Console.Error.WriteLine("The tag '' can't be parse as version.".Pastel(Color.Yellow));
+                Console.Error.WriteLine($"The tag '{tag.Name}' can't be parse as version.".Pastel(Color.Yellow));
                 return null;
             }
 
@@ -214,7 +214,7 @@ namespace Git_CI_Tools
                 }
             }
 
-            Console.Out.WriteLine($"Current version: {currentVersion} ".Pastel(Color.Green));
+            Console.Out.WriteLine($"Current version: {currentVersion.ToString().Pastel(Color.Green)} ");
 
             if (string.IsNullOrEmpty(options.Branch))
                 options.Branch = git.GetCurrentBranch()?.Name;
@@ -228,26 +228,55 @@ namespace Git_CI_Tools
             if (tag != null)
                 Console.Out.WriteLine($"Reverse version from tag {tag} of branch  '{options.Branch}' ... ".Pastel(Color.Green));
             else
-                Console.Out.WriteLine($"Reverse version from branch ... ".Pastel(Color.Green));
+                Console.Out.WriteLine($"Reverse version from branch ... ");
 
-            var nextVersion = GitContextHelper.ResolverVersionFromCommit(
+            var resolverVersionResult = GitContextHelper.ResolverVersionFromCommit(
                 git,
                 currentVersion,
                 options.Branch,
                 tag?.Sha,
                 options.MajorVer,
                 options.MinorVer,
-                options.PatchVer,
-                options.PrereleaseVer ?? "",
-                options.BuildVer ?? "",
-                options.IgnoreConfig);
+                options.PatchVer);
 
-            if (nextVersion.ToString() == currentVersion.ToString() && options.Force)
+            SemVersion nextVersion = resolverVersionResult.Version;
+
+            // nextVersion = VersionGenerater.Next(nextVersion, prerelease: options.PrereleaseVer ?? "", build: options.BuildVer ?? "");
+
+            if (options.AutoDetectBuildVer && string.IsNullOrEmpty(options.BuildVer))
+            {
+                var latestCommit = resolverVersionResult.Commits.FirstOrDefault();
+                if (latestCommit != null)
+                {
+                    nextVersion = VersionGenerater.Next(nextVersion, build: latestCommit.Sha.Substring(0, 8));
+                }
+            }
+            else
+            {
+                nextVersion = VersionGenerater.Next(nextVersion, build: options.BuildVer ?? "");
+            }
+
+            if (options.AutoDetect)
+            {
+                if (string.IsNullOrEmpty(currentVersion.Prerelease))
+                {
+                    nextVersion = VersionGenerater.Next(currentVersion, patch: true);
+                }
+
+                if (!string.IsNullOrEmpty(options.PrereleaseVer))
+                {
+                    nextVersion = VersionGenerater.Next(currentVersion, prerelease: options.PrereleaseVer);
+                }
+
+                // TODO
+            }
+
+            if (nextVersion.ToString() == currentVersion.ToString() && options.ForceUpdate)
                 nextVersion = VersionGenerater.Next(currentVersion, patch: true);
 
             string outputText = nextVersion.ToString();
 
-            Console.Out.WriteLine($"The next version: {outputText} ".Pastel(Color.Green));
+            Console.Out.WriteLine($"The next version: {outputText.Pastel(Color.Green)} ");
 
             if (options.Format == "json")
             {

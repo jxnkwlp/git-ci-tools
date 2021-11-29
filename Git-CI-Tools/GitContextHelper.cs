@@ -86,9 +86,9 @@ namespace Git_CI_Tools
             var find = versions.First();
 
             if (includePrerelease)
-                Console.Out.WriteLine($"The last preversion version is {find.Key}, tags: {find.Value.Name} ".Pastel(Color.Green));
+                Console.Out.WriteLine("The last preversion version is " + $"{find.Key}, tags: {find.Value.Name} ".Pastel(Color.Green));
             else
-                Console.Out.WriteLine($"The last version is {find.Key}, tags: {find.Value.Name} ".Pastel(Color.Green));
+                Console.Out.WriteLine($"The last version is " + $"{find.Key}, tags: {find.Value.Name} ".Pastel(Color.Green));
 
             return find.Value;
         }
@@ -120,34 +120,33 @@ namespace Git_CI_Tools
             return true;
         }
 
-        public static SemVersion ResolverVersionFromCommit(
+        public static ResolverVersionResult ResolverVersionFromCommit(
             GitContext gitContext,
             SemVersion version,
             string branch = null,
             string fromSha = null,
-            bool major = false,
-            bool minor = true,
-            bool patch = false,
-            string prerelease = "",
-            string build = "",
-            bool ignoreConfig = false)
+            bool? major = false,
+            bool? minor = false,
+            bool? patch = false)
         {
             var commits = gitContext.GetCommits(branch, fromSha);
 
             SemVersion result = version;
 
-            if (!ignoreConfig && major || ReleaseConfigHelper.IsMajor(gitContext.Project, commits))
+            if (major == true || ReleaseConfigHelper.IsMajor(gitContext.Project, commits))
                 result = VersionGenerater.Next(result, major: true);
 
-            else if (!ignoreConfig && !major && (ReleaseConfigHelper.IsMinor(gitContext.Project, commits) || minor))
+            else if (major != true && (minor == true && ReleaseConfigHelper.IsMinor(gitContext.Project, commits)))
                 result = VersionGenerater.Next(result, minor: true);
 
-            else if (!ignoreConfig && !major && !minor && (ReleaseConfigHelper.IsPatch(gitContext.Project, commits) || patch))
+            else if ((major != true && minor != true) && (patch == true && ReleaseConfigHelper.IsPatch(gitContext.Project, commits)))
                 result = VersionGenerater.Next(result, patch: true);
 
-            result = VersionGenerater.Next(result, prerelease: prerelease, build: build);
-
-            return result;
+            return new ResolverVersionResult
+            {
+                Version = result,
+                Commits = commits,
+            };
         }
 
         public static Dictionary<string, IReadOnlyList<GitCommit>> SplitCommits(IEnumerable<GitCommit> commits, string[] filePaths)
@@ -172,5 +171,11 @@ namespace Git_CI_Tools
             return result;
         }
 
+    }
+
+    public class ResolverVersionResult
+    {
+        public SemVersion Version { get; set; }
+        public IReadOnlyList<GitCommit> Commits { get; set; }
     }
 }

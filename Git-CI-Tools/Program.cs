@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CommandLine;
+using System.Linq;
 using System.Threading.Tasks;
 using Git_CI_Tools.Commands;
 
@@ -9,13 +10,16 @@ namespace Git_CI_Tools
     {
         private static async Task<int> Main(string[] args)
         {
-            Console.WriteLine();
-            Console.WriteLine("     #############################################  ");
-            Console.WriteLine("     ##                                         ##  ");
-            Console.WriteLine("     ##               GIT CI TOOL               ##  ");
-            Console.WriteLine("     ##                                         ##  ");
-            Console.WriteLine("     #############################################  ");
-            Console.WriteLine();
+            if (args?.Any() != true)
+            {
+                Console.WriteLine();
+                Console.WriteLine("     #############################################  ");
+                Console.WriteLine("     ##                                         ##  ");
+                Console.WriteLine("     ##               GIT CI TOOL               ##  ");
+                Console.WriteLine("     ##                                         ##  ");
+                Console.WriteLine("     #############################################  ");
+                Console.WriteLine();
+            }
 
             var rootCommand = new RootCommand()
             {
