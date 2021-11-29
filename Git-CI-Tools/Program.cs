@@ -1,4 +1,5 @@
-﻿using System.CommandLine;
+﻿using System;
+using System.CommandLine;
 using System.Threading.Tasks;
 using Git_CI_Tools.Commands;
 
@@ -8,9 +9,18 @@ namespace Git_CI_Tools
     {
         private static async Task<int> Main(string[] args)
         {
+            Console.WriteLine();
+            Console.WriteLine("     #############################################  ");
+            Console.WriteLine("     ##                                         ##  ");
+            Console.WriteLine("     ##               GIT CI TOOL               ##  ");
+            Console.WriteLine("     ##                                         ##  ");
+            Console.WriteLine("     #############################################  ");
+            Console.WriteLine();
+
             var rootCommand = new RootCommand()
             {
                 Description = "Git tools for ci",
+                Name = "gitci"
             };
 
             rootCommand.AddGlobalOption(new Option<string>("--project", "The project root path"));

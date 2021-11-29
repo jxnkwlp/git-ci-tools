@@ -12,8 +12,8 @@
 		<RepositoryUrl>https://github.com/jxnkwlp/git-ci-tools</RepositoryUrl>
 		<RepositoryType>github</RepositoryType>
 		<PackageProjectUrl>https://github.com/jxnkwlp/git-ci-tools</PackageProjectUrl>
-		<PackageTags>ci, git</PackageTags>
-		<Version>0.2.2</Version>
+		<PackageTags>ci, git, cli</PackageTags>
+		<Version>0.1.0</Version>
         <PackageReadmeFile>README.md</PackageReadmeFile>
 		<Description>An tool for ci base on git repository.  can generate version, changes notes etc.</Description>
 	</PropertyGroup>

@@ -100,6 +100,8 @@ namespace Git_CI_Tools
                 Console.WriteLine(sb.ToString().Pastel(Color.SlateGray));
             }
 
+            Console.Out.WriteLine();
+
             return result;
         }
 
@@ -169,6 +171,8 @@ namespace Git_CI_Tools
                 Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ".Pastel(Color.Green));
             }
 
+            Console.Out.WriteLine();
+
             return new VersionCurrentCommandResult
             {
                 Version = currentVersion,
@@ -177,6 +181,8 @@ namespace Git_CI_Tools
 
         public VersionNextCommandResult VersionNext(VersionNextCommandOptions options)
         {
+            Console.Out.WriteLine("Generate next version from git history and tags.");
+
             var git = GitContextHelper.InitProject(options.Project);
 
             if (git == null)
@@ -287,6 +293,8 @@ namespace Git_CI_Tools
                 Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ".Pastel(Color.Green));
             }
 
+            Console.Out.WriteLine();
+
             return new VersionNextCommandResult
             {
                 Version = nextVersion,
@@ -300,6 +308,8 @@ namespace Git_CI_Tools
 
         public void ReleaseChanges(ReleaseChangesCommandOption options)
         {
+            Console.Out.WriteLine("Generate git changes.");
+
             if (string.Equals(options.Provider, "gitlab", StringComparison.InvariantCultureIgnoreCase) && string.IsNullOrEmpty(options.ServerUrl))
             {
                 Console.Error.WriteLine($"No server url provider.".Pastel(Color.Red));
@@ -358,6 +368,8 @@ namespace Git_CI_Tools
                 Console.Out.WriteLine($"Release notes generated. {Environment.NewLine}. ".Pastel(Color.Green));
                 Console.Out.WriteLine(notes);
             }
+
+            Console.Out.WriteLine();
         }
 
     }
