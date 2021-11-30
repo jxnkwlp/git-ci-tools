@@ -100,7 +100,7 @@ namespace Git_CI_Tools
             List<Commit> resultCommits = null;
 
             if (fromDate.HasValue)
-                resultCommits = query.Where(x => x.Committer.When >= fromDate.Value).ToList();
+                resultCommits = query.Where(x => x.Committer.When > fromDate.Value).ToList();
             else
                 resultCommits = query.ToList();
 
