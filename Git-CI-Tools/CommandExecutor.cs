@@ -243,17 +243,23 @@ namespace Git_CI_Tools
 
             // nextVersion = VersionGenerater.Next(nextVersion, prerelease: options.PrereleaseVer ?? "", build: options.BuildVer ?? "");
 
-            if (options.AutoDetectBuildVer && string.IsNullOrEmpty(options.BuildVer))
+            if (options.AutoDetectBuildVer && options.BuildVer == null)
             {
                 var latestCommit = resolverVersionResult.Commits.FirstOrDefault();
                 if (latestCommit != null)
                 {
                     nextVersion = VersionGenerater.Next(nextVersion, build: latestCommit.Sha.Substring(0, 8));
                 }
+                else
+                {
+                    // use current commit
+                    var commit = git.Commits[0];
+                    nextVersion = VersionGenerater.Next(nextVersion, build: commit.Sha[..8]);
+                }
             }
             else
             {
-                nextVersion = VersionGenerater.Next(nextVersion, build: options.BuildVer ?? "");
+                nextVersion = VersionGenerater.Next(nextVersion, build: options.BuildVer);
             }
 
             if (options.AutoDetect)

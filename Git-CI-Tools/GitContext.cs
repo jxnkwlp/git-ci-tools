@@ -13,6 +13,8 @@ namespace Git_CI_Tools
         public string Project => _repository.Info.WorkingDirectory; //new DirectoryInfo(_path).Parent.FullName;
         public string Git => _path;
 
+        public IReadOnlyList<GitCommit> Commits => GetCommits();
+
         public GitContext(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
