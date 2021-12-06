@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CommandLine;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Git_CI_Tools.Commands;
 
@@ -10,6 +11,8 @@ namespace Git_CI_Tools
     {
         private static async Task<int> Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+
             if (args?.Any() != true)
             {
                 Console.WriteLine();

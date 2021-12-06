@@ -40,7 +40,7 @@ namespace Git_CI_Tools
             // find commits 
             var commits = git.GetCommits(options.Branch, fromSha: tag?.Sha).ToList();
 
-            Console.Out.WriteLine($"Find {commits.Count()} commits. ".Pastel(Color.Green));
+            Console.Out.WriteLine($"Find {commits.Count()} commits. ".Pastel(Color.SlateGray));
 
             var changed = new Dictionary<string, List<GitChangedFile>>();
 
@@ -168,7 +168,7 @@ namespace Git_CI_Tools
             {
                 File.WriteAllText(options.Output, outputText);
 
-                Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ".Pastel(Color.Green));
+                Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ".Pastel(Color.SlateGray));
             }
 
             Console.Out.WriteLine();
@@ -214,7 +214,7 @@ namespace Git_CI_Tools
                 }
             }
 
-            Console.Out.WriteLine($"Current version: {currentVersion.ToString().Pastel(Color.Green)} ");
+            Console.Out.WriteLine($"⚡ Current version: {currentVersion.ToString().Pastel(Color.Green)} ");
 
             if (string.IsNullOrEmpty(options.Branch))
                 options.Branch = git.GetCurrentBranch()?.Name;
@@ -226,7 +226,7 @@ namespace Git_CI_Tools
             }
 
             if (tag != null)
-                Console.Out.WriteLine($"Reverse version from tag {tag} of branch  '{options.Branch}' ... ".Pastel(Color.Green));
+                Console.Out.WriteLine($"Reverse version from tag {tag} of branch  '{options.Branch}' ... ".Pastel(Color.SlateGray));
             else
                 Console.Out.WriteLine($"Reverse version from branch ... ");
 
@@ -260,23 +260,25 @@ namespace Git_CI_Tools
             {
                 if (string.IsNullOrEmpty(currentVersion.Prerelease))
                 {
-                    nextVersion = VersionGenerater.Next(currentVersion, patch: true);
+                    nextVersion = VersionGenerater.Next(nextVersion, patch: true);
                 }
 
                 if (!string.IsNullOrEmpty(options.PrereleaseVer))
                 {
-                    nextVersion = VersionGenerater.Next(currentVersion, prerelease: options.PrereleaseVer);
+                    nextVersion = VersionGenerater.Next(nextVersion, prerelease: options.PrereleaseVer);
                 }
 
                 // TODO
             }
 
             if (nextVersion.ToString() == currentVersion.ToString() && options.ForceUpdate)
-                nextVersion = VersionGenerater.Next(currentVersion, patch: true);
+                nextVersion = VersionGenerater.Next(nextVersion, patch: true);
 
             string outputText = nextVersion.ToString();
 
-            Console.Out.WriteLine($"The next version: {outputText.Pastel(Color.Green)} ");
+            Console.Out.WriteLine($"✔ The next version: {outputText.Pastel(Color.Green)} ");
+
+            Console.Out.WriteLine($"🚗 Version change : {currentVersion.ToString().Pastel(Color.Azure)}  →  {outputText.Pastel(Color.Green)} ");
 
             if (options.Format == "json")
             {
@@ -319,7 +321,7 @@ namespace Git_CI_Tools
             {
                 File.WriteAllText(options.Output, outputText);
 
-                Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ".Pastel(Color.Green));
+                Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ".Pastel(Color.SlateGray));
             }
 
             Console.Out.WriteLine();
@@ -370,7 +372,7 @@ namespace Git_CI_Tools
             // find commits 
             var commits = git.GetCommits(options.Branch, fromSha: tag?.Sha).ToList();
 
-            Console.Out.WriteLine($"Find {commits.Count()} commits. ".Pastel(Color.Green));
+            Console.Out.WriteLine($"Find {commits.Count()} commits. ".Pastel(Color.SlateGray));
             // Console.Out.WriteLine(JsonSerializer.Serialize(commits).Pastel(Color.SlateGray));
 
             string[] groupbyPaths = null;
@@ -390,11 +392,11 @@ namespace Git_CI_Tools
             {
                 File.WriteAllText(options.Output, notes);
 
-                Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ".Pastel(Color.Green));
+                Console.Out.WriteLine($"The result has been written to file '{options.Output}'. ".Pastel(Color.SlateGray));
             }
             else
             {
-                Console.Out.WriteLine($"Release notes generated. {Environment.NewLine}. ".Pastel(Color.Green));
+                Console.Out.WriteLine($"Release notes generated. {Environment.NewLine}. ".Pastel(Color.SlateGray));
                 Console.Out.WriteLine(notes);
             }
 
