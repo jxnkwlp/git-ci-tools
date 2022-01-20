@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Git-CI-Tools": {
+      "commandName": "Project",
+      "commandLineArgs": "minify  js --project D:\\Work\\Github\\ACRA-Modules\\src\\modules --dist C:\\Users\\Liam.Wu\\Desktop\\2"
+    }
+  }
+}

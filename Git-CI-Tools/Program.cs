@@ -37,6 +37,7 @@ namespace Git_CI_Tools
             rootCommand.AddCommand(new VersionCommand().GetCommand());
             rootCommand.AddCommand(new ReleaseCommand().GetCommand());
             rootCommand.AddCommand(new GitCommand().GetCommand());
+            rootCommand.AddCommand(new MinifyCommand().GetCommand());
 
             return await rootCommand.InvokeAsync(args);
         }
