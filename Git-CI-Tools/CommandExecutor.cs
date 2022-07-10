@@ -89,7 +89,7 @@ namespace Git_CI_Tools
 
                 foreach (var item in changed)
                 {
-                    sb.AppendLine($"## {item.Key }");
+                    sb.AppendLine($"## {item.Key}");
                     sb.AppendLine(string.Join(Environment.NewLine, changed.SelectMany(x => x.Value).Select(x => $"- {x.Status} {x.Path}")));
                     sb.AppendLine();
                 }
@@ -264,7 +264,7 @@ namespace Git_CI_Tools
 
             if (options.AutoDetect)
             {
-                if (string.IsNullOrEmpty(currentVersion.Prerelease))
+                if (string.IsNullOrEmpty(currentVersion.Prerelease) && nextVersion == currentVersion)
                 {
                     nextVersion = VersionGenerater.Next(nextVersion, patch: true);
                 }

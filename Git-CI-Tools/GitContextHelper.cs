@@ -133,13 +133,13 @@ namespace Git_CI_Tools
 
             SemVersion result = version;
 
-            if (major == true || ReleaseConfigHelper.IsMajor(gitContext.Project, commits))
+            if (major == true || (major != false && ReleaseConfigHelper.IsMajor(gitContext.Project, commits)))
                 result = VersionGenerater.Next(result, major: true);
 
-            else if (major != true && (minor == true && ReleaseConfigHelper.IsMinor(gitContext.Project, commits)))
+            else if (minor == true || (minor != false && ReleaseConfigHelper.IsMinor(gitContext.Project, commits)))
                 result = VersionGenerater.Next(result, minor: true);
 
-            else if ((major != true && minor != true) && (patch == true && ReleaseConfigHelper.IsPatch(gitContext.Project, commits)))
+            else if (patch == true || (patch != false && ReleaseConfigHelper.IsPatch(gitContext.Project, commits)))
                 result = VersionGenerater.Next(result, patch: true);
 
             return new ResolverVersionResult
