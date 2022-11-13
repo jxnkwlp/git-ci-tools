@@ -16,10 +16,13 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v1 
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: |
+            5.0.x
+            6.0.x
+            7.0.x
 
     - name: Install Dotnet Tool
       run: |
@@ -34,7 +37,7 @@ jobs:
           gitci release changes --output ./changeslog.md
           gitci version next --format json --output ./version.json --build-ver "${{env.GITHUB_SHA_SHORT}}" 
           ls ./
-
+ 
     - name: Restore dependencies
       run: dotnet restore
       
