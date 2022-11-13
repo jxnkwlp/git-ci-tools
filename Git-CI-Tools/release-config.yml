@@ -3,18 +3,24 @@
     commits:
       - "Major"
       - "[break changes]" 
+      - "break" 
     labels:
       - "Versioning - major"
   minor:
     commits:
       - "[feat]"
       - "[minor]"
+      - "feat"
+      - ":bulb:"
     labels:
       - "Versioning - Minor"
   patch:
     commits:
       - "[fix]"
       - "[fix bugs]"
+      - "fix"
+      - ":zap:"
+      - ":bug:"
     labels:
       - "Versioning - Patch"
   default: patch
@@ -30,6 +36,8 @@ categories:
       - "Feature"
     commits:
       - "[feat]"
+      - "feat"
+      - ":bulb:"
   - title: "🐛 Bug Fixes"
     labels:
       - "Bug - Fixed"
@@ -37,11 +45,16 @@ categories:
     commits:
       - "[fix]"
       - "[fix bugs]"
+      - "fix"
+      - ":zap:"
+      - ":bug:"
   - title: "📖 Documentation"
     labels:
       - "Documentation"
     commits:
       - "[docs]"
+      - "docs"
+      - ":memo:"
   - title: "🧰 Maintenance"
     labels:
       - "Chore"

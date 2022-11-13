@@ -1,7 +1,7 @@
 ﻿# Git ci tool
 An tool for ci base on git repository.  can generate version, changes notes etc.
 
-[![Nuget](https://img.shields.io/nuget/v/Passingwind.Git-CI-Tools)](https://www.nuget.org/packages/Passingwind.Git-CI-Tools/)
+[![NuGet](https://img.shields.io/nuget/v/Passingwind.Git-CI-Tools)](https://www.nuget.org/packages/Passingwind.Git-CI-Tools/)
 
 ``` shell
 > gitci -h

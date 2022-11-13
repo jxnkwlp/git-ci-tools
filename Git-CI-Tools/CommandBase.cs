@@ -9,12 +9,12 @@ namespace Git_CI_Tools
     {
         public abstract Command GetCommand();
 
-        protected bool IsRunningInGithubAction()
+        public static bool IsRunningInGithubAction()
         {
             return !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         }
 
-        protected bool IsRunningInGitlab()
+        public static bool IsRunningInGitlab()
         {
             return Environment.GetEnvironmentVariable("CI_SERVER")?.Equals("yes", StringComparison.OrdinalIgnoreCase) ?? false;
         }
