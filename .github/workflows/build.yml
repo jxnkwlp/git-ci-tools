@@ -1,58 +1,60 @@
 name: build and pack
 
+# permissions:
+#   contents: read
+
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
+#   pull_request:
+#     branches: [main, develop]
 
 jobs:
   build:
-
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
-    - name: Setup dotnet
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: |
-            5.0.x
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: |
             6.0.x
             7.0.x
 
-    - name: Install Dotnet Tool
-      run: |
-        dotnet tool install -g Passingwind.Git-CI-Tools
-        gitci --version
+      #   - name: Install Dotnet Tool
+      #     run: |
+      #       dotnet tool install -g Passingwind.Git-CI-Tools
+      #       gitci --version
 
-    - name: Set environment variables
-      uses: rlespinasse/github-slug-action@3.6.0
- 
-    - name: Version check and generate
-      run: |
-          gitci release changes --output ./changeslog.md
-          gitci version next --format json --output ./version.json --build-ver "${{env.GITHUB_SHA_SHORT}}" 
+      - name: Set environment variables
+        uses: rlespinasse/github-slug-action@3.6.0
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Version check and generate
+        run: |
+          cd ./Git-CI-Tools/
+          dotnet run --framework net6.0 -- release changes --output ${{github.workspace}}/changeslog.md
+          dotnet run --framework net6.0 -- version next --format json --output ${{github.workspace}}/version.json --build-ver "${{env.GITHUB_SHA_SHORT}}"
           ls ./
- 
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build --no-restore -c Release
-      
-    - name: Pack
-      run: dotnet pack --no-build --no-restore -c Release /p:Version="${{env.GITCI_NEXT_VERSION}}" -o ./
 
-    - name: Push package
-      run: dotnet nuget push ./*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
+      - name: Pack
+        run: dotnet pack --no-build --no-restore -c Release /p:Version="${{env.GITCI_NEXT_VERSION}}" --property:PackageOutputPath=${{github.workspace}} Git-CI-Tools.sln
 
-    - name: Create Release
-      uses: ncipollo/release-action@v1
-      with:
+      - name: Push package
+        run: dotnet nuget push ./*.nupkg --skip-duplicate --api-key ${{secrets.NUGET_TOKEN}} --source https://api.nuget.org/v3/index.json
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
           tag: v${{env.GITCI_NEXT_VERSION}}
           artifacts: ./*.nupkg, ./changeslog*
           bodyFile: ./changeslog.md

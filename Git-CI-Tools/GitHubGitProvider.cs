@@ -1,10 +1,9 @@
-﻿namespace Git_CI_Tools
+﻿namespace Git_CI_Tools;
+
+public class GitHubGitProvider : IGitProvider
 {
-    public class GitHubGitProvider : IGitProvider
+    public string UserLink(string name, string email)
     {
-        public string UserLink(string name, string email)
-        {
-            return $"[{name}](https://github.com/{name.Replace(" ", "%20")})";
-        }
+        return $"[{name}](https://github.com/{name.Replace(" ", "%20")})";
     }
 }
