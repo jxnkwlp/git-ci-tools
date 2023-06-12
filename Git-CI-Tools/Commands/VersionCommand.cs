@@ -40,6 +40,9 @@ public class VersionCommand : CommandBase
                     { "GITCI_CURRENT_VERSION_BUILD", result.Version.Metadata },
                     { "GITCI_CURRENT_VERSION_PRERELEASE", result.Version.Prerelease },
                     { "GITCI_CURRENT_VERSION", result.Version.ToString() },
+                    { "GITCI_CURRENT_VERSION_LEGACY", result.Version.WithoutPrereleaseOrMetadata().ToString() },
+                    { "GITCI_CURRENT_VERSION_SEMANTIC", result.Version.ToString() },
+                    { "GITCI_CURRENT_NUGET_VERSION", result.Version.ToString() },
                 });
             }
         });
@@ -84,6 +87,8 @@ public class VersionCommand : CommandBase
                     { "GITCI_NEXT_VERSION_BUILD", result.Version.Metadata },
                     { "GITCI_NEXT_VERSION_PRERELEASE", result.Version.Prerelease },
                     { "GITCI_NEXT_VERSION", result.Version.ToString() },
+                    { "GITCI_NEXT_VERSION_LEGACY", result.Version.WithoutPrereleaseOrMetadata().ToString() },
+                    { "GITCI_NEXT_VERSION_SEMANTIC", result.Version.ToString() },
                     { "GITCI_NEXT_NUGET_VERSION", result.Version.ToString() },
                 });
             }

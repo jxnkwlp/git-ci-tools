@@ -5,7 +5,7 @@ namespace Git_CI_Tools;
 /// <summary>
 ///  version sample => 1.0.5-rc+027dfeea
 /// </summary>
-public class VersionGenerater
+public static class VersionGenerater
 {
     public static SemVersion Parse(string version)
     {
@@ -25,12 +25,12 @@ public class VersionGenerater
         if (patch) version = version.With(patch: version.Patch + 1);
 
         if (!string.IsNullOrEmpty(prerelease))
-            version = version.WithPrerelease(prerelease);
+            version = version.WithPrereleaseParsedFrom(prerelease);
         else
             version = version.WithoutPrerelease();
 
         if (!string.IsNullOrEmpty(build))
-            version = version.WithMetadata(build);
+            version = version.WithMetadataParsedFrom(build);
         else
             version = version.WithoutMetadata();
 
