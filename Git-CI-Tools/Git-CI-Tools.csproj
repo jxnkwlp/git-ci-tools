@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFrameworks>net6.0;net7.0;net8.0</TargetFrameworks>
+        <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
         <RootNamespace>Git_CI_Tools</RootNamespace>
         <Authors>Passingwind</Authors>
         <PackAsTool>true</PackAsTool>
@@ -25,10 +25,10 @@
     <ItemGroup>
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21308.1" />
         <PackageReference Include="LibGit2Sharp" Version="0.27.2" />
-        <PackageReference Include="YamlDotNet" Version="13.1.0" />
-        <PackageReference Include="semver" Version="2.3.0" />
-        <PackageReference Include="Pastel" Version="4.1.0" />
-        <PackageReference Include="NUglify" Version="1.20.6" />
+        <PackageReference Include="YamlDotNet" Version="16.2.0" />
+        <PackageReference Include="semver" Version="3.0.0" />
+        <PackageReference Include="Pastel" Version="6.0.0" />
+        <PackageReference Include="NUglify" Version="1.21.10" />
     </ItemGroup>
 
 </Project>
