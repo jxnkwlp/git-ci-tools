@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Pastel;
+using Semver;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using Pastel;
-using Semver;
 
 namespace Git_CI_Tools;
 
@@ -53,7 +53,7 @@ public static class GitContextHelper
             result = result.Where(x => string.IsNullOrEmpty(x.Key.Prerelease)).ToList();
         }
 
-        return result.OrderByDescending(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+        return result.OrderByDescending(x => x.Key, SemVersion.SortOrderComparer).ToDictionary(x => x.Key, x => x.Value);
     }
 
     public static GitTags FindLatestTag(GitContext git, bool includePrerelease = false)
