@@ -44,8 +44,8 @@ jobs:
       - name: Version check and generate
         run: |
           cd ./Git-CI-Tools/
-          dotnet run --framework net6.0 -- release changes --output ${{github.workspace}}/changeslog.md
-          dotnet run --framework net6.0 -- version next --format json --output ${{github.workspace}}/version.json --build-ver "${{env.GITHUB_SHA_SHORT}}"
+          dotnet run --framework net9.0 -- release changes --output ${{github.workspace}}/changeslog.md
+          dotnet run --framework net9.0 -- version next --format json --output ${{github.workspace}}/version.json --build-ver "${{env.GITHUB_SHA_SHORT}}"
           ls ./
 
       - name: Pack
